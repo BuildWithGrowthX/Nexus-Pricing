@@ -1,0 +1,10 @@
+flask
+flask-pymongo
+pymongo[srv]
+python-dotenv
+dnspython
+werkzeug
+gunicorn
+scikit-learn
+numpy
+bson
