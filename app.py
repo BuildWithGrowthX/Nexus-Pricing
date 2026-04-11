@@ -13,13 +13,16 @@ load_dotenv()
 
 app = Flask(__name__)
 # Secret key from env, fallback
-app.secret_key = os.environ.get("SECRET_KEY", "nexuspricing_secret_key_2026")
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback_secret_key_2026')
 
 # Mongo URI config
-app.config["MONGO_URI"] = os.environ.get("MONGO_URI", 
-    "mongodb+srv://username:password@cluster.mongodb.net/nexuspricing?retryWrites=true&w=majority")
+app.config['MONGO_URI'] = os.environ.get('MONGO_URI', '')
 
-mongo = PyMongo(app)
+try:
+    mongo = PyMongo(app)
+except Exception as e:
+    print(f"MongoDB connection warning: {e}")
+    mongo = None
 
 # Only do ML import after app so models can potentially use DB
 from model import train_and_predict
@@ -27,9 +30,10 @@ from model import train_and_predict
 # Initial setup - create unique indexes, etc. Note: Since we might not have a connection config ready, we can wrap this.
 with app.app_context():
     try:
-        mongo.db.users.create_index("username", unique=True)
-        mongo.db.pricing_history.create_index([("user_id", 1), ("timestamp", -1)])
-        mongo.db.ml_settings.create_index("user_id", unique=True)
+        if mongo is not None:
+            mongo.db.users.create_index("username", unique=True)
+            mongo.db.pricing_history.create_index([("user_id", 1), ("timestamp", -1)])
+            mongo.db.ml_settings.create_index("user_id", unique=True)
     except Exception as e:
         print(f"MongoDB index setup exception: {e}")
 
@@ -65,6 +69,9 @@ def calculate_dynamic_price_logic(base_price, demand_level, stock, competitor_pr
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        if mongo is None:
+            return jsonify({"error": "Database unavailable"}), 503
+            
         username = request.form['username']
         password = request.form['password']
         
@@ -117,6 +124,9 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        if mongo is None:
+            return jsonify({"error": "Database unavailable"}), 503
+            
         username = request.form['username']
         password = request.form['password']
         
@@ -174,6 +184,8 @@ def settings_page():
 
 @app.route('/api/save-pricing', methods=['POST'])
 def save_pricing():
+    if mongo is None:
+        return jsonify({"error": "Database unavailable"}), 503
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     username = session['username']
     data = request.json
@@ -215,6 +227,8 @@ def save_pricing():
 
 @app.route('/api/history', methods=['GET'])
 def get_history():
+    if mongo is None:
+        return jsonify({"error": "Database unavailable"}), 503
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     username = session['username']
     limit = request.args.get('limit', type=int)
@@ -229,6 +243,8 @@ def get_history():
 
 @app.route('/api/history/<record_id>', methods=['DELETE'])
 def delete_record(record_id):
+    if mongo is None:
+        return jsonify({"error": "Database unavailable"}), 503
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     result = mongo.db.pricing_history.delete_one({"_id": ObjectId(record_id), "user_id": session['username']})
     if result.deleted_count:
@@ -237,6 +253,8 @@ def delete_record(record_id):
 
 @app.route('/api/history/all', methods=['DELETE'])
 def delete_all_history():
+    if mongo is None:
+        return jsonify({"error": "Database unavailable"}), 503
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     result = mongo.db.pricing_history.delete_many({"user_id": session['username']})
     return jsonify({"status": "cleared", "count": result.deleted_count})
@@ -247,6 +265,8 @@ def delete_all_history():
 
 @app.route('/api/analytics', methods=['GET'])
 def get_analytics():
+    if mongo is None:
+        return jsonify({"error": "Database unavailable"}), 503
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     username = session['username']
     
@@ -322,6 +342,8 @@ def get_analytics():
 
 @app.route('/api/dashboard-stats', methods=['GET'])
 def get_dashboard_stats():
+    if mongo is None:
+        return jsonify({"error": "Database unavailable"}), 503
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     username = session['username']
     
@@ -358,6 +380,8 @@ def get_dashboard_stats():
 
 @app.route('/api/predict', methods=['POST'])
 def api_predict():
+    if mongo is None:
+        return jsonify({"error": "Database unavailable"}), 503
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     username = session['username']
     data = request.json
@@ -384,6 +408,8 @@ def api_predict():
 
 @app.route('/api/settings', methods=['GET'])
 def get_settings():
+    if mongo is None:
+        return jsonify({"error": "Database unavailable"}), 503
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     s = mongo.db.ml_settings.find_one({"user_id": session['username']})
     if not s:
@@ -396,6 +422,8 @@ def get_settings():
 
 @app.route('/api/settings', methods=['POST'])
 def save_settings():
+    if mongo is None:
+        return jsonify({"error": "Database unavailable"}), 503
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     data = request.json
     
@@ -422,4 +450,4 @@ def save_settings():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False, port=5000)
+    app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
