@@ -491,6 +491,11 @@ def save_settings():
         return jsonify({"error": "Failed to save settings."}), 500
 
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    return f"APP ERROR:\n{str(e)}\n\n{traceback.format_exc()}", 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
