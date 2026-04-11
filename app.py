@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_pymongo import PyMongo
+from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson import json_util
 from dotenv import load_dotenv
@@ -14,14 +14,23 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback_secret_key_2026')
 app.config['MONGO_URI'] = os.environ.get('MONGO_URI', '')
 
-mongo = None
+class MongoWrapper:
+    def __init__(self):
+        self.db = None
+        self.cx = None
+
+mongo = MongoWrapper()
 try:
     if app.config['MONGO_URI']:
-        mongo = PyMongo(app)
+        client = MongoClient(app.config['MONGO_URI'])
+        mongo.db = client.get_default_database()
+        mongo.cx = client
         print("MongoDB initialized successfully")
     else:
+        mongo = None
         print("MONGO_URI not set, starting app without MongoDB")
 except Exception as e:
+    mongo = None
     print(f"MongoDB connection warning: {e}")
 
 # Try to import model, fallback if it fails
