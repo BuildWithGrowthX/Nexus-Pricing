@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback_secret_key_2026')
 app.config['MONGO_URI'] = os.environ.get('MONGO_URI', '')
 
@@ -491,8 +491,12 @@ def save_settings():
         return jsonify({"error": "Failed to save settings."}), 500
 
 
+from werkzeug.exceptions import HTTPException
+
 @app.errorhandler(Exception)
 def handle_exception(e):
+    if isinstance(e, HTTPException):
+        return e
     import traceback
     return f"APP ERROR:\n{str(e)}\n\n{traceback.format_exc()}", 500
 
