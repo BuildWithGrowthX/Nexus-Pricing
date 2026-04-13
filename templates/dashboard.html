@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Real-Time Top Stats Banner -->
+<div class="stats-banner glass-panel fade-in mb-4" id="top-stats-banner" style="display:flex; justify-content:space-around; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.95rem;">
+    <span>📊 Total Calculations: <span id="banner-calcs">...</span></span>
+    <span>💰 Revenue Optimized: <span id="banner-rev">...</span></span>
+    <span>🏆 Best Strategy: <span id="banner-strat">...</span></span>
+    <span><span id="banner-sync-icon">☁️</span> <span id="banner-sync-text">Synced</span></span>
+</div>
+
+<div class="dashboard-grid fade-in delay-1">
+    
+    <!-- Left Panel: Settings & Parameters -->
+    <div class="card glass-panel" id="inputs-panel">
+        <h3><i class="icon">⚙️</i> Settings & Parameters</h3>
+        <form id="pricing-form">
+            <div class="form-group">
+                <label>Product Name</label>
+                <input type="text" id="prod_name" value="Premium Suite">
+            </div>
+            
+            <div class="form-group">
+                <label>Category</label>
+                <select id="category">
+                    <option value="hotel">Hotel</option>
+                    <option value="flight">Flight</option>
+                    <option value="ride">Ride</option>
+                    <option value="ecommerce">E-commerce</option>
+                    <option value="saas">SaaS</option>
+                </select>
+            </div>
+            
+            <div class="d-flex gap-4">
+                <div class="form-group w-full">
+                    <label>Base Price ($)</label>
+                    <input type="number" id="base_price" value="250">
+                </div>
+                <div class="form-group w-full">
+                    <label>Competitor ($)</label>
+                    <input type="number" id="comp_price" value="240">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Market Demand</label>
+                <select id="demand">
+                    <option value="0.2">Very Low</option>
+                    <option value="0.5">Low</option>
+                    <option value="1.0" selected>Medium (Stable)</option>
+                    <option value="1.5">High</option>
+                    <option value="2.0">Very High</option>
+                    <option value="3.0">Extreme</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <div class="range-header">
+                    <label>Available Inventory / Stock</label>
+                    <span class="range-val" id="stock-val">50 units</span>
+                </div>
+                <input type="range" id="stock" min="0" max="200" value="50">
+            </div>
+
+            <div class="form-group">
+                <div class="range-header">
+                    <label>Time Sensitivity</label>
+                    <span class="range-val" id="time-val">Medium</span>
+                </div>
+                <input type="range" id="time" min="0" max="3" value="1">
+            </div>
+
+            <div class="d-flex gap-4">
+                <div class="form-group w-full">
+                    <label>Customer Segment</label>
+                    <select id="segment">
+                        <option value="0.8">Budget</option>
+                        <option value="1.0" selected>Regular</option>
+                        <option value="1.3">Premium</option>
+                        <option value="1.5">Enterprise</option>
+                    </select>
+                </div>
+                <div class="form-group w-full">
+                    <label>Season / Event</label>
+                    <select id="season">
+                        <option value="1.0" selected>Normal</option>
+                        <option value="1.2">Weekend</option>
+                        <option value="1.4">Holiday</option>
+                        <option value="1.6">Festival</option>
+                        <option value="0.7">Flash Sale</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" id="btn-calc" class="btn-primary">Calculate</button>
+                <button type="button" id="btn-save" class="btn-green">Save to History</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right Panel: Results & Explainability -->
+    <div class="results-panel">
+        
+        <div class="results-row fade-in delay-2">
+            <div class="card glass-panel stat-card">
+                <h4>Rule-Based Price</h4>
+                <div class="stat-value" id="res-rule">$250.00</div>
+                <div><span class="badge badge-green">Live</span></div>
+            </div>
+            <div class="card glass-panel stat-card">
+                <h4>ML Prediction</h4>
+                <div class="stat-value ai-gradient" id="res-ml">$250.00</div>
+                <div><span class="badge badge-purple">Pre-trained Model</span></div>
+            </div>
+            <div class="card glass-panel stat-card">
+                <h4>Confidence Score</h4>
+                <div class="stat-value" id="res-conf">85%</div>
+                <div><span class="badge badge-blue">Based on Input Variance</span></div>
+            </div>
+            <div class="card glass-panel stat-card">
+                <h4>Recommended Strategy</h4>
+                <div class="stat-value" style="font-size: 1.5rem;" id="res-strat">Competitive</div>
+                <div><span class="badge badge-orange" id="res-mult">Multiplier: 1.0x</span></div>
+            </div>
+        </div>
+
+        <div class="card glass-panel fade-in delay-3">
+            <h3>Decision Explainability (ML Factors)</h3>
+            <div class="mb-4 text-muted">
+                Formula: Base * (1 + 0.45*Demand + 0.30*Scarcity + 0.15*Comp + 0.10*Time + 0.08*Seg + 0.07*Season)
+            </div>
+            <table class="explain-table">
+                <thead>
+                    <tr>
+                        <th>Factor</th>
+                        <th>Weight</th>
+                        <th>Contribution %</th>
+                        <th>Impact</th>
+                    </tr>
+                </thead>
+                <tbody id="explain-body">
+                    <!-- Injected by JS -->
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="charts-grid fade-in delay-3">
+    <div class="card glass-panel">
+        <h3>Price Dynamics</h3>
+        <div class="chart-container"><canvas id="priceDynChart"></canvas></div>
+    </div>
+    <div class="card glass-panel">
+        <h3>Multi-Variable Analysis</h3>
+        <div class="chart-container"><canvas id="radarChart"></canvas></div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="charts-grid fade-in delay-3 mt-4">
+    <div class="card glass-panel">
+        <h3>Revenue Optimization Scenarios</h3>
+        <div class="chart-container"><canvas id="revChart"></canvas></div>
+    </div>
+    <div class="card glass-panel">
+        <h3>Demand vs Price Curve</h3>
+        <div class="chart-container"><canvas id="demandCurveChart"></canvas></div>
+    </div>
+</div>
+
+<style>
+.autocomplete-wrapper {
+    position: relative;
+    width: 100%;
+}
+.autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1A2035;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 4px;
+}
+.suggestion-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+}
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+.suggestion-item:hover, .autocomplete-active {
+    background: #3B82F6;
+    color: white;
+}
+/* Scrollbar strictly for dropdown */
+.autocomplete-dropdown::-webkit-scrollbar {
+    width: 8px;
+}
+.autocomplete-dropdown::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+    border-radius: 4px;
+}
+.autocomplete-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+<script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
+
+{% endblock %}
