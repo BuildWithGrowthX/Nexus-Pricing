@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-between align-center fade-in mb-4">
+    <h2 style="margin:0">Pricing Timeline History</h2>
+    <button class="btn-red" id="btn-clear-history">Clear All History</button>
+</div>
+
+<div class="card glass-panel fade-in delay-1">
+    <div id="history-timeline" class="flex-col gap-4">
+        <!-- JS Injected Timeline items -->
+    </div>
+</div>
+{% endblock %}
