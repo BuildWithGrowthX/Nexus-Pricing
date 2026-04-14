@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NexusPricing</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -19,6 +19,7 @@
                 <a href="{{ url_for('history') }}" class="btn-link">History</a>
                 <a href="{{ url_for('settings_page') }}" class="btn-link">Settings</a>
                 <span class="user-greeting">Welcome, {{ session['username'] }}</span>
+                <button id="nav-theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme">🌙</button>
                 <a href="{{ url_for('logout') }}" class="btn-link btn-logout">Logout</a>
             {% else %}
                 <a href="{{ url_for('login') }}" class="btn-link">Login</a>
@@ -39,5 +40,48 @@
         {% block content %}{% endblock %}
     </main>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+                document.body.classList.remove('dark-theme');
+            } else {
+                document.body.classList.add('dark-theme');
+                document.body.classList.remove('light-theme');
+            }
+            localStorage.setItem('nexus_theme', theme);
+            updateToggleUIs(theme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(newTheme);
+            
+            const settingsSelect = document.getElementById('set_theme');
+            if (settingsSelect) {
+                settingsSelect.value = newTheme;
+            }
+        }
+
+        function updateToggleUIs(theme) {
+            const navBtn = document.getElementById('nav-theme-toggle');
+            if (navBtn) {
+                navBtn.innerHTML = theme === 'light' ? '☀️' : '🌙';
+            }
+            const settingsToggle = document.getElementById('settings-theme-toggle');
+            if (settingsToggle) {
+                settingsToggle.checked = theme === 'light';
+            }
+        }
+
+        const savedThemeBase = localStorage.getItem('nexus_theme') || 'dark';
+        applyTheme(savedThemeBase);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const navBtn = document.getElementById('nav-theme-toggle');
+            if(navBtn) navBtn.addEventListener('click', toggleTheme);
+        });
+    </script>
 </body>
 </html>
