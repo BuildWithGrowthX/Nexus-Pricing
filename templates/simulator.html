@@ -14,24 +14,24 @@
         
         <div class="form-row d-flex gap-4 mb-4">
             <div class="form-group w-full">
-                <label>Base Price ($)</label><input type="number" id="base_a" value="250">
+                <label>Base Price (₹)</label><input type="number" id="basePriceA" value="250">
             </div>
             <div class="form-group w-full">
-                <label>Competitor ($)</label><input type="number" id="comp_a" value="240">
+                <label>Competitor (₹)</label><input type="number" id="competitorA" value="240">
             </div>
         </div>
         
-        <div class="form-group"><label>Demand Factor</label>
-            <input type="range" id="dem_a" min="0" max="3" step="0.1" value="1.0">
+        <div class="form-group"><label>Demand Factor (%)</label>
+            <input type="range" id="demandA" min="0" max="300" step="10" value="100">
         </div>
-        <div class="form-group"><label>Scarcity Factor (Stock)</label>
-            <input type="range" id="stock_a" min="0" max="200" value="50">
+        <div class="form-group"><label>Scarcity Factor (%)</label>
+            <input type="range" id="scarcityA" min="0" max="200" value="50">
         </div>
         
-        <div class="stat-card" style="background:rgba(0,0,0,0.2); border-radius:8px; margin-top:1rem">
+        <div class="stat-card" style="background:rgba(0,0,0,0.2); border-radius:8px; margin-top:1rem; border-left:none;">
             <h4>Predicted Price A</h4>
-            <div class="stat-value" id="res_a" style="color:var(--primary)">$0.00</div>
-            <div>Rev Est: <span id="rev_a">$0</span></div>
+            <div class="stat-value" id="predictedPriceA" style="color:var(--primary)">₹0.00</div>
+            <div id="revEstA">Rev Est: ₹0</div>
         </div>
     </div>
 
@@ -44,30 +44,140 @@
         
         <div class="form-row d-flex gap-4 mb-4">
             <div class="form-group w-full">
-                <label>Base Price ($)</label><input type="number" id="base_b" value="250">
+                <label>Base Price (₹)</label><input type="number" id="basePriceB" value="250">
             </div>
             <div class="form-group w-full">
-                <label>Competitor ($)</label><input type="number" id="comp_b" value="200">
+                <label>Competitor (₹)</label><input type="number" id="competitorB" value="200">
             </div>
         </div>
         
-        <div class="form-group"><label>Demand Factor</label>
-            <input type="range" id="dem_b" min="0" max="3" step="0.1" value="2.0">
+        <div class="form-group"><label>Demand Factor (%)</label>
+            <input type="range" id="demandB" min="0" max="300" step="10" value="200">
         </div>
-        <div class="form-group"><label>Scarcity Factor (Stock)</label>
-            <input type="range" id="stock_b" min="0" max="200" value="10">
+        <div class="form-group"><label>Scarcity Factor (%)</label>
+            <input type="range" id="scarcityB" min="0" max="200" value="10">
         </div>
         
-        <div class="stat-card" style="background:rgba(0,0,0,0.2); border-radius:8px; margin-top:1rem">
+        <div class="stat-card" style="background:rgba(0,0,0,0.2); border-radius:8px; margin-top:1rem; border-left:none;">
             <h4>Predicted Price B</h4>
-            <div class="stat-value" id="res_b" style="color:var(--accent-purple)">$0.00</div>
-            <div>Rev Est: <span id="rev_b">$0</span></div>
+            <div class="stat-value" id="predictedPriceB" style="color:var(--accent-purple)">₹0.00</div>
+            <div id="revEstB">Rev Est: ₹0</div>
         </div>
     </div>
 </div>
 
-<div class="card glass-panel fade-in delay-2 mt-4">
+<div class="card glass-panel fade-in delay-2 mt-4" style="position: relative;">
+    <span class="badge badge-orange" id="winnerBadge" style="position: absolute; top: 1.5rem; right: 1.5rem; display: none;">🏆 Winner</span>
     <h3>Revenue Comparison</h3>
-    <div class="chart-container" style="height:200px"><canvas id="simChart"></canvas></div>
+    <div style="position:relative; width:100%; height:300px;">
+        <canvas id="revenueChart"></canvas>
+    </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    
+    const revenueChart = new Chart(revenueCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Scenario A', 'Scenario B'],
+        datasets: [{
+          label: 'Estimated Revenue (₹)',
+          data: [0, 0],
+          backgroundColor: [
+            'rgba(139, 92, 246, 0.8)',
+            'rgba(109, 40, 217, 0.6)'
+          ],
+          borderColor: [
+            'rgba(139, 92, 246, 1)',
+            'rgba(109, 40, 217, 1)'
+          ],
+          borderWidth: 2,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return '₹' + ctx.parsed.y.toLocaleString('en-IN');
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return '₹' + value.toLocaleString('en-IN');
+              }
+            }
+          }
+        }
+      }
+    });
+
+    function updateSimulator() {
+      const basePriceA = parseFloat(document.getElementById('basePriceA').value) || 250;
+      const competitorA = parseFloat(document.getElementById('competitorA').value) || 240;
+      const demandA = parseFloat(document.getElementById('demandA').value) / 100 || 0.5;
+      const scarcityA = parseFloat(document.getElementById('scarcityA').value) / 100 || 0.3;
+
+      const basePriceB = parseFloat(document.getElementById('basePriceB').value) || 250;
+      const competitorB = parseFloat(document.getElementById('competitorB').value) || 200;
+      const demandB = parseFloat(document.getElementById('demandB').value) / 100 || 0.5;
+      const scarcityB = parseFloat(document.getElementById('scarcityB').value) / 100 || 0.3;
+
+      const multA = Math.max(0.5, Math.min(4.0,
+        1 + (0.45*demandA) + (0.30*scarcityA) + 
+        (0.15*((competitorA/basePriceA)-1))));
+        
+      const multB = Math.max(0.5, Math.min(4.0,
+        1 + (0.45*demandB) + (0.30*scarcityB) + 
+        (0.15*((competitorB/basePriceB)-1))));
+
+      const priceA = Math.round(basePriceA * multA * 100)/100;
+      const priceB = Math.round(basePriceB * multB * 100)/100;
+
+      const revA = Math.round(priceA * 50);
+      const revB = Math.round(priceB * 50);
+
+      document.getElementById('predictedPriceA').textContent = '₹' + priceA.toFixed(2);
+      document.getElementById('predictedPriceB').textContent = '₹' + priceB.toFixed(2);
+      document.getElementById('revEstA').textContent = 'Rev Est: ₹' + revA.toLocaleString('en-IN');
+      document.getElementById('revEstB').textContent = 'Rev Est: ₹' + revB.toLocaleString('en-IN');
+
+      revenueChart.data.datasets[0].data = [revA, revB];
+      revenueChart.update();
+
+      if (revA >= revB) {
+        document.getElementById('winnerBadge').textContent = '🏆 Winner (A)';
+        document.getElementById('winnerBadge').style.display = 'block';
+        document.getElementById('sim-winner-a').style.display = 'inline-block';
+        document.getElementById('sim-winner-b').style.display = 'none';
+      } else {
+        document.getElementById('winnerBadge').textContent = '🏆 Winner (B)';
+        document.getElementById('winnerBadge').style.display = 'block';
+        document.getElementById('sim-winner-a').style.display = 'none';
+        document.getElementById('sim-winner-b').style.display = 'inline-block';
+      }
+    }
+
+    document.querySelectorAll(
+      '#basePriceA, #competitorA, #demandA, #scarcityA, #basePriceB, #competitorB, #demandB, #scarcityB'
+    ).forEach(input => {
+      input.addEventListener('input', updateSimulator);
+      input.addEventListener('change', updateSimulator);
+    });
+
+    updateSimulator();
+});
+</script>
 {% endblock %}
