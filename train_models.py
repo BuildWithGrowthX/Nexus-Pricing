@@ -100,5 +100,5 @@ for cat in categories:
 
     print(f"[{cat} Model] -> Trained on {n} records | Accuracy: {acc:.2f}%")
 
-print("\n✅ ml_model_weights successfully populated!")
-print("✅ Confirmation that dashboard is connected to live weights (run app!).")
+print("\n[SUCCESS] ml_model_weights successfully populated!")
+print("[SUCCESS] Confirmation that dashboard is connected to live weights (run app!).")
