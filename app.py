@@ -443,10 +443,10 @@ def api_predict():
             sca = max(0, (100 - stock)) / 100.0
             comp = (competitor_price / base_price) if base_price > 0 else 1.0
             
-            # Predict final price directly
-            y_pred = w[0]*demand_level + w[1]*sca + w[2]*comp + w[3]*time_val + w[4]*seg_val + w[5]*season_val + bias
+            # Predict the final price multiplier directly
+            predicted_mult = w[0]*demand_level + w[1]*sca + w[2]*comp + w[3]*time_val + w[4]*seg_val + w[5]*season_val + bias
             # Safeguard against too low pricing
-            pred_price = round(max(base_price * 0.5, y_pred), 2)
+            pred_price = round(max(base_price * 0.5, base_price * predicted_mult), 2)
             acc = w_doc.get("accuracy_score", 0)
             note = f"Calculated using Live Pure-Python {cat} ML Model (Trained on {w_doc['trained_on']} records, Accuracy: {acc:.2f}%)."
         else:
