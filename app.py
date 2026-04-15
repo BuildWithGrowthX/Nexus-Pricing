@@ -49,6 +49,7 @@ with app.app_context():
             mongo.cx.server_info()
             mongo.db.users.create_index("username", unique=True)
             mongo.db.pricing_history.create_index([("user_id", 1), ("timestamp", -1)])
+            mongo.db.user_pricing_history.create_index([("user_id", 1), ("timestamp", -1)])
             mongo.db.ml_settings.create_index("user_id", unique=True)
             print("MongoDB indexes verified.")
     except Exception as e:
@@ -224,7 +225,10 @@ def save_pricing():
             "timestamp": datetime.now()
         }
         
-        result = mongo.db.pricing_history.insert_one(record)
+        # Insert to global ML tracking
+        mongo.db.pricing_history.insert_one(record.copy())
+        # Insert to user history
+        result = mongo.db.user_pricing_history.insert_one(record)
         
         revenue_opt = record["final_price"] - record["base_price"]
         mongo.db.user_analytics.update_one(
@@ -248,7 +252,7 @@ def get_history():
         username = session['username']
         limit = request.args.get('limit', type=int)
         
-        query = mongo.db.pricing_history.find({"user_id": username}).sort("timestamp", -1)
+        query = mongo.db.user_pricing_history.find({"user_id": username}).sort("timestamp", -1)
         if limit:
             query = query.limit(limit)
             
@@ -265,7 +269,7 @@ def delete_record(record_id):
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     
     try:
-        result = mongo.db.pricing_history.delete_one({"_id": ObjectId(record_id), "user_id": session['username']})
+        result = mongo.db.user_pricing_history.delete_one({"_id": ObjectId(record_id), "user_id": session['username']})
         if result.deleted_count:
             return jsonify({"status": "deleted"})
         return jsonify({"error": "Not found"}), 404
@@ -280,7 +284,7 @@ def delete_all_history():
     if 'username' not in session: return jsonify({'error': 'Unauthorized'}), 401
     
     try:
-        result = mongo.db.pricing_history.delete_many({"user_id": session['username']})
+        result = mongo.db.user_pricing_history.delete_many({"user_id": session['username']})
         return jsonify({"status": "cleared", "count": result.deleted_count})
     except Exception as e:
         print(f"Error deleting all history: {e}")
@@ -310,7 +314,7 @@ def get_analytics():
                 "total_revenue_optimized": {"$sum": {"$subtract": ["$final_price", "$base_price"]}}
             }}
         ]
-        summary_results = list(mongo.db.pricing_history.aggregate(pipeline))
+        summary_results = list(mongo.db.user_pricing_history.aggregate(pipeline))
         summary = summary_results[0] if summary_results else {
             "total_records": 0, "avg_multiplier": 1.0, 
             "highest_price": 0.0, "lowest_price": 0.0, 
@@ -321,10 +325,10 @@ def get_analytics():
             summary["avg_multiplier"] = round(summary["avg_multiplier"], 2)
         
         strat_pipe = [{"$match": {"user_id": username}}, {"$group": {"_id": "$strategy", "count": {"$sum": 1}}}]
-        strategy_counts = {item["_id"]: item["count"] for item in mongo.db.pricing_history.aggregate(strat_pipe)}
+        strategy_counts = {item["_id"]: item["count"] for item in mongo.db.user_pricing_history.aggregate(strat_pipe)}
         
         cat_pipe = [{"$match": {"user_id": username}}, {"$group": {"_id": "$category", "count": {"$sum": 1}}}]
-        category_counts = {item["_id"]: item["count"] for item in mongo.db.pricing_history.aggregate(cat_pipe)}
+        category_counts = {item["_id"]: item["count"] for item in mongo.db.user_pricing_history.aggregate(cat_pipe)}
         
         date_pipe = [
             {"$match": {"user_id": username}},
@@ -340,7 +344,7 @@ def get_analytics():
         ]
         monthly_data = []
         import calendar
-        for d in reversed(list(mongo.db.pricing_history.aggregate(date_pipe))):
+        for d in reversed(list(mongo.db.user_pricing_history.aggregate(date_pipe))):
             m_name = calendar.month_abbr[d["_id"]["month"]]
             y_val = d["_id"]["year"]
             monthly_data.append({"month": f"{m_name} {y_val}", "avg_price": round(d["avg_price"], 2)})
@@ -384,7 +388,7 @@ def get_dashboard_stats():
                 "recent": [{"$sort": {"timestamp": -1}}, {"$limit": 7}],
             }}
         ]
-        agg_result = list(mongo.db.pricing_history.aggregate(pipe))
+        agg_result = list(mongo.db.user_pricing_history.aggregate(pipe))
         if agg_result:
             r = agg_result[0]
             avg_mult = round(r["avg_mult"][0]["v"], 2) if r["avg_mult"] else 1.0
@@ -450,7 +454,7 @@ def api_predict():
             acc = w_doc.get("accuracy_score", 0)
             note = f"Calculated using Live Pure-Python {cat} ML Model (Trained on {w_doc['trained_on']} records, Accuracy: {acc:.2f}%)."
         else:
-            history_records = list(mongo.db.pricing_history.find({"user_id": username}).sort("timestamp", -1).limit(100))
+            history_records = list(mongo.db.user_pricing_history.find({"user_id": username}).sort("timestamp", -1).limit(100))
             s = mongo.db.ml_settings.find_one({"user_id": username}) or {}
             
             if ML_AVAILABLE:
