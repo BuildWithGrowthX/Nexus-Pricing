@@ -422,15 +422,43 @@ def api_predict():
         stock = int(data.get("stock", 50))
         competitor_price = float(data.get("competitor_price", 0))
         
-        history_records = list(mongo.db.pricing_history.find({"user_id": username}).sort("timestamp", -1).limit(100))
-        s = mongo.db.ml_settings.find_one({"user_id": username}) or {}
+        cat_raw = data.get("category", "hotel").lower()
+        if cat_raw == "hotel": cat = "Hotel"
+        elif cat_raw == "flight": cat = "Flight"
+        elif cat_raw == "ride": cat = "Ride"
+        elif cat_raw == "ecommerce": cat = "E-commerce"
+        elif cat_raw == "saas": cat = "SaaS"
+        else: cat = "Hotel"
         
-        if ML_AVAILABLE:
-            pred_price, note = train_and_predict(base_price, demand_level, stock, competitor_price, history_records, s)
+        time_val = float(data.get("time", 1.0))
+        seg_val = float(data.get("segment", 1.0))
+        season_val = float(data.get("season", 1.0))
+
+        # Check weights for this category
+        w_doc = mongo.db.ml_model_weights.find_one({"category": cat})
+
+        if w_doc:
+            w = w_doc['weights']
+            bias = w_doc['bias']
+            sca = max(0, (100 - stock)) / 100.0
+            comp = (competitor_price / base_price) if base_price > 0 else 1.0
+            
+            # Predict final price directly
+            y_pred = w[0]*demand_level + w[1]*sca + w[2]*comp + w[3]*time_val + w[4]*seg_val + w[5]*season_val + bias
+            # Safeguard against too low pricing
+            pred_price = round(max(base_price * 0.5, y_pred), 2)
+            acc = w_doc.get("accuracy_score", 0)
+            note = f"Calculated using Live Pure-Python {cat} ML Model (Trained on {w_doc['trained_on']} records, Accuracy: {acc:.2f}%)."
         else:
-            # Fallback if ML failed to load
-            pred_price, note = calculate_dynamic_price_logic(base_price, demand_level, stock, competitor_price)
-            note = str(note)
+            history_records = list(mongo.db.pricing_history.find({"user_id": username}).sort("timestamp", -1).limit(100))
+            s = mongo.db.ml_settings.find_one({"user_id": username}) or {}
+            
+            if ML_AVAILABLE:
+                pred_price, note = train_and_predict(base_price, demand_level, stock, competitor_price, history_records, s)
+            else:
+                # Fallback if ML failed to load
+                pred_price, note = calculate_dynamic_price_logic(base_price, demand_level, stock, competitor_price)
+                note = str(note)
         
         return jsonify({"predicted_price": pred_price, "note": note})
     except Exception as e:

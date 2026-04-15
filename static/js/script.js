@@ -207,7 +207,14 @@ async function calculateLive() {
         try {
             document.getElementById('res-ml').innerText = '...';
             const payload = {
-                base_price: base, demand_level: demVal, stock: stockVal, competitor_price: comp
+                base_price: base, 
+                demand_level: demVal, 
+                stock: stockVal, 
+                competitor_price: comp,
+                category: document.getElementById('category').value,
+                time: document.getElementById('time').value,
+                segment: document.getElementById('segment').value,
+                season: document.getElementById('season').value
             };
             const predictRes = await apiFetch('/api/predict', {
                 method: 'POST',
