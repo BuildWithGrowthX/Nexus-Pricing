@@ -4,6 +4,102 @@
 {% if is_new_user %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css">
 <style>
+/* Intro.js Dark Theme Override for NexusPricing */
+
+.introjs-tooltip {
+  background-color: #1a1a2e !important;
+  border: 1px solid #7c3aed !important;
+  border-radius: 12px !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.3) !important;
+  font-family: inherit !important;
+  max-width: 320px !important;
+}
+
+.introjs-tooltiptext {
+  color: #cbd5e1 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+.introjs-tooltip-title {
+  color: #a78bfa !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin-bottom: 6px !important;
+}
+
+.introjs-tooltipbuttons {
+  border-top: 1px solid #2d2d4e !important;
+  padding: 10px 14px !important;
+}
+
+.introjs-button {
+  background-color: #7c3aed !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 7px 16px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+  cursor: pointer !important;
+  transition: background 0.2s !important;
+}
+
+.introjs-button:hover {
+  background-color: #6d28d9 !important;
+  color: #ffffff !important;
+}
+
+.introjs-skipbutton {
+  background-color: transparent !important;
+  color: #94a3b8 !important;
+  border: 1px solid #3f3f6e !important;
+  border-radius: 8px !important;
+  padding: 7px 14px !important;
+  font-size: 13px !important;
+}
+
+.introjs-skipbutton:hover {
+  background-color: #2d2d4e !important;
+  color: #e2e8f0 !important;
+}
+
+.introjs-helperLayer {
+  border: 2px solid #7c3aed !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.75) !important;
+}
+
+.introjs-arrow {
+  border-bottom-color: #1a1a2e !important;
+  border-top-color: #1a1a2e !important;
+  border-left-color: #1a1a2e !important;
+  border-right-color: #1a1a2e !important;
+}
+
+.introjs-progressbar {
+  background-color: #7c3aed !important;
+}
+
+.introjs-progress {
+  background-color: #2d2d4e !important;
+}
+
+.introjs-bullets ul li a {
+  background-color: #3f3f6e !important;
+}
+
+.introjs-bullets ul li a.active {
+  background-color: #7c3aed !important;
+}
+
+.introjs-stepnumber {
+  color: #a78bfa !important;
+}
+</style>
+<style>
 .np-onboard-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -292,8 +388,10 @@
 {% if is_new_user %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
 <script>
+const npUserId = "{{ username }}";
+
 document.addEventListener('DOMContentLoaded', function() {
-    if (localStorage.getItem('np_onboarding_done') === 'true') {
+    if (localStorage.getItem('np_onboarding_done_' + npUserId) === 'true') {
         const modal = document.getElementById('np-onboard-container');
         if(modal) modal.style.display = 'none';
         return;
@@ -304,7 +402,7 @@ function completeOnboardingState() {
     const modal = document.getElementById('np-onboard-container');
     if(modal) modal.style.display = 'none';
     
-    localStorage.setItem('np_onboarding_done', 'true');
+    localStorage.setItem('np_onboarding_done_' + npUserId, 'true');
     fetch('/api/complete-onboarding', {
         method: 'POST',
         headers: {
