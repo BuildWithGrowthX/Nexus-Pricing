@@ -168,11 +168,22 @@ async function renderDashboardStats() {
         
         // Update price dynamics chart with recent records
         if(priceDynChart && stats.last_7_days_records) {
+            const pCanvas = document.getElementById('priceDynChart');
+            const pPlaceholder = document.getElementById('priceDynPlaceholder');
             let recs = stats.last_7_days_records.reverse(); // oldest to newest
-            if(recs.length > 0){
+            if(recs.length === 0){
+                 if (pCanvas) pCanvas.style.visibility = 'hidden';
+                 if (pPlaceholder) pPlaceholder.style.display = 'block';
+            } else {
+                 if (pCanvas) pCanvas.style.visibility = 'visible';
+                 if (pPlaceholder) pPlaceholder.style.display = 'none';
                  priceDynChart.data.labels = recs.map((r, i) => `T-${recs.length-i}`);
                  priceDynChart.data.datasets[0].data = recs.map(r => r.final_price);
                  priceDynChart.data.datasets[1].data = recs.map(r => r.base_price);
+                 if (priceDynChart.options.scales && priceDynChart.options.scales.y) {
+                     delete priceDynChart.options.scales.y.min;
+                     delete priceDynChart.options.scales.y.max;
+                 }
                  priceDynChart.update();
             }
         }
@@ -496,20 +507,66 @@ function initCharts() {
     }
 }
 
-function updateDashboardCharts(res, sum, base, comp) {
+async function updateDashboardCharts(res, sum, base, comp) {
     if(radarChart && sum) {
+        const radarCanvas = document.getElementById('radarChart');
+        const radarPlaceholder = document.getElementById('radarPlaceholder');
+        if (radarCanvas) radarCanvas.style.visibility = 'visible';
+        if (radarPlaceholder) radarPlaceholder.style.display = 'none';
+
         radarChart.data.datasets[0].data = [sum.dem_score, sum.sca_score, sum.comp_score, sum.time_score, sum.seg_score, sum.sea_score];
         radarChart.update();
     }
     if(revChart && res) {
-        let rv = base * parseFloat(document.getElementById('stock').value||50);
-        revChart.data.datasets[0].data = [rv*0.8, rv, rv*1.2, rv*1.5, rv*1.8];
+        revChart.data.datasets[0].data = [base*0.85, base*1.00, base*1.25, base*1.60, base*2.00];
+        
+        revChart.options.scales = revChart.options.scales || {};
+        revChart.options.scales.y = revChart.options.scales.y || {};
+        revChart.options.scales.y.min = Math.floor(base * 0.7);
+        revChart.options.scales.y.max = Math.ceil(base * 2.2);
+        
         revChart.update();
     }
     if(demandCurveChart && res) {
-        let arr = [res.price*1.3, res.price*1.1, res.price, res.price*0.9, res.price*0.7];
+        let arr = [base*1.8, base*1.4, base*1.0, base*0.8, base*0.7];
         demandCurveChart.data.datasets[0].data = arr;
+        
+        demandCurveChart.options.scales = demandCurveChart.options.scales || {};
+        demandCurveChart.options.scales.y = demandCurveChart.options.scales.y || {};
+        demandCurveChart.options.scales.y.min = base * 0.7;
+        demandCurveChart.options.scales.y.max = base * 1.8;
+        
         demandCurveChart.update();
+    }
+
+    if(priceDynChart) {
+        try {
+            const hist = await apiFetch('/api/history?limit=7');
+            const pCanvas = document.getElementById('priceDynChart');
+            const pPlaceholder = document.getElementById('priceDynPlaceholder');
+            
+            if (!hist || hist.length === 0) {
+                if (pCanvas) pCanvas.style.visibility = 'hidden';
+                if (pPlaceholder) pPlaceholder.style.display = 'block';
+            } else {
+                if (pCanvas) pCanvas.style.visibility = 'visible';
+                if (pPlaceholder) pPlaceholder.style.display = 'none';
+                
+                let recs = hist.slice().reverse(); // oldest to newest
+                priceDynChart.data.labels = recs.map((r, i) => `T-${recs.length-i}`);
+                priceDynChart.data.datasets[0].data = recs.map(r => r.final_price);
+                priceDynChart.data.datasets[1].data = recs.map(r => r.base_price);
+                
+                if (priceDynChart.options.scales && priceDynChart.options.scales.y) {
+                    delete priceDynChart.options.scales.y.min;
+                    delete priceDynChart.options.scales.y.max;
+                }
+                
+                priceDynChart.update();
+            }
+        } catch (e) {
+            console.error("Failed to load history for price dyn chart", e);
+        }
     }
 }
 

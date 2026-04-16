@@ -313,11 +313,17 @@
 <div class="charts-grid fade-in delay-3">
     <div class="card glass-panel">
         <h3>Price Dynamics</h3>
-        <div class="chart-container"><canvas id="priceDynChart"></canvas></div>
+        <div class="chart-container" style="position: relative;">
+            <div id="priceDynPlaceholder" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; text-align: center; color: #94A3B8; font-weight: 500;">Run your first calculation to see price trends</div>
+            <canvas id="priceDynChart"></canvas>
+        </div>
     </div>
     <div class="card glass-panel">
         <h3>Multi-Variable Analysis</h3>
-        <div class="chart-container"><canvas id="radarChart"></canvas></div>
+        <div class="chart-container" style="position: relative;">
+            <div id="radarPlaceholder" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; text-align: center; color: #94A3B8; font-weight: 500;">Calculate a price to see your market profile</div>
+            <canvas id="radarChart" style="visibility: hidden;"></canvas>
+        </div>
     </div>
 </div>
 
