@@ -11,7 +11,8 @@
 <body class="dark-theme">
     <nav class="navbar glass-panel">
         <div class="nav-brand">Nexus<span>Pricing</span></div>
-        <div class="nav-links">
+        <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle Menu">☰</button>
+        <div class="nav-links" id="nav-links">
             {% if session.get('username') %}
                 <a href="{{ url_for('dashboard') }}" class="btn-link">Dashboard</a>
                 <a href="{{ url_for('simulator') }}" class="btn-link">Simulator</a>
@@ -81,6 +82,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             const navBtn = document.getElementById('nav-theme-toggle');
             if(navBtn) navBtn.addEventListener('click', toggleTheme);
+
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const navLinks = document.getElementById('nav-links');
+            if(mobileMenuBtn && navLinks) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    navLinks.classList.toggle('show');
+                });
+            }
         });
     </script>
 </body>
