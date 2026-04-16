@@ -456,7 +456,9 @@ async function initPriceDynamicsChart() {
     const finalPrices = data.map(d => parseFloat(d.final_price) || 0);
     const basePrices = data.map(d => parseFloat(d.base_price) || 0);
     
-    const ctx = document.getElementById('priceDynChart').getContext('2d');
+    const pCanvas = document.getElementById('priceDynChart');
+    if (!pCanvas) return;
+    const ctx = pCanvas.getContext('2d');
     
     if (window.priceDynamicsInstance) {
         window.priceDynamicsInstance.destroy();
@@ -518,7 +520,9 @@ async function initPriceDynamicsChart() {
 
 var radarChart;
 function initRadarChart() {
-    const ctx = document.getElementById('radarChart').getContext('2d');
+    const radarCanvas = document.getElementById('radarChart');
+    if (!radarCanvas) return;
+    const ctx = radarCanvas.getContext('2d');
     radarChart = new Chart(ctx, {
         type: 'radar',
         data: {
@@ -584,7 +588,9 @@ function updateRadarChart() {
 
 var revenueChart;
 function initRevenueChart() {
-    const ctx = document.getElementById('revChart').getContext('2d');
+    const revCanvas = document.getElementById('revChart');
+    if (!revCanvas) return;
+    const ctx = revCanvas.getContext('2d');
     revenueChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -630,7 +636,9 @@ function updateRevenueChart() {
 
 var demandChart;
 function initDemandChart() {
-    const ctx = document.getElementById('demandCurveChart').getContext('2d');
+    const demandCanvas = document.getElementById('demandCurveChart');
+    if (!demandCanvas) return;
+    const ctx = demandCanvas.getContext('2d');
     demandChart = new Chart(ctx, {
         type: 'line',
         data: {
