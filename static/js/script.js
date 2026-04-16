@@ -465,7 +465,6 @@ async function initPriceDynamicsChart() {
     }
     
     // Hide placeholder if data exists
-    const pCanvas = document.getElementById('priceDynChart');
     const pPlaceholder = document.getElementById('priceDynPlaceholder');
     if(data.length === 0) {
         if(pCanvas) pCanvas.style.visibility = 'hidden';
