@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load global settings
     await loadGlobalSettings();
 
+    // Update currency labels across the app
+    document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
+
     // Trigger initial route logic
     const path = window.location.pathname;
     if (path === '/' || path.includes('dashboard')) {
@@ -146,6 +149,9 @@ async function loadGlobalSettings() {
     } catch(e) {
         console.log("Using default settings due to offline.");
     }
+    
+    // Ensure labels fetch the updated valid currency
+    document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
 }
 
 async function renderDashboardStats() {
