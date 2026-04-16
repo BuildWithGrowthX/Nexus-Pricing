@@ -8,11 +8,14 @@ if (theme === 'light') document.body.classList.add('light-theme');
 else document.body.classList.remove('light-theme');
 
 // Global charts
-let priceDynChart, radarChart, revChart, demandCurveChart, simChart;
+let simChart;
 let calcDebounce;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    initCharts();
+    initPriceDynamicsChart();
+    initRadarChart();
+    initRevenueChart();
+    initDemandChart();
     setupListeners();
     syncOfflineQueue(); // Attempt to sync on load
 
@@ -165,28 +168,7 @@ async function renderDashboardStats() {
         if(rf) rf.innerText = (stats.currency || '$') + stats.revenue_optimized.toLocaleString();
         const rs = document.getElementById('banner-strat');
         if(rs) rs.innerText = stats.best_strategy;
-        
-        // Update price dynamics chart with recent records
-        if(priceDynChart && stats.last_7_days_records) {
-            const pCanvas = document.getElementById('priceDynChart');
-            const pPlaceholder = document.getElementById('priceDynPlaceholder');
-            let recs = stats.last_7_days_records.reverse(); // oldest to newest
-            if(recs.length === 0){
-                 if (pCanvas) pCanvas.style.visibility = 'hidden';
-                 if (pPlaceholder) pPlaceholder.style.display = 'block';
-            } else {
-                 if (pCanvas) pCanvas.style.visibility = 'visible';
-                 if (pPlaceholder) pPlaceholder.style.display = 'none';
-                 priceDynChart.data.labels = recs.map((r, i) => `T-${recs.length-i}`);
-                 priceDynChart.data.datasets[0].data = recs.map(r => r.final_price);
-                 priceDynChart.data.datasets[1].data = recs.map(r => r.base_price);
-                 if (priceDynChart.options.scales && priceDynChart.options.scales.y) {
-                     delete priceDynChart.options.scales.y.min;
-                     delete priceDynChart.options.scales.y.max;
-                 }
-                 priceDynChart.update();
-            }
-        }
+
     } catch(e) {
         elCalcs.innerText = 'N/A';
     }
@@ -242,7 +224,9 @@ async function calculateLive() {
         } catch(e) {
             document.getElementById('res-ml').innerText = currency + res.price.toFixed(2);
         }
-        updateDashboardCharts(res, sum, base, comp);
+        updateRadarChart();
+        updateRevenueChart();
+        updateDemandChart();
     }, 500);
 }
 
@@ -460,190 +444,229 @@ function renderSettingsUI() {
 // UTILITIES AND LISTENERS
 // ==========================================
 
-function initCharts() {
-    Chart.defaults.color = theme === 'light' ? '#334155' : '#94A3B8';
-    Chart.defaults.font.family = 'Inter';
+/* ============================================
+   CHART 1 — PRICE DYNAMICS
+   ============================================ */
 
-    const pCtx = document.getElementById('priceDynChart');
-    if(pCtx) {
-        priceDynChart = new Chart(pCtx.getContext('2d'), {
-            type: 'line',
-            data: { labels: [], datasets: [
-                { label: 'Final Price', borderColor: '#3B82F6', tension: 0.4, data: [] },
-                { label: 'Base Price', borderColor: '#94A3B8', borderDash: [5,5], data: [] }
-            ]},
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        ticks: {
-                            callback: function(value) { return currency + value.toLocaleString(undefined, {minimumFractionDigits: 2}); }
+async function initPriceDynamicsChart() {
+    const res = await fetch('/api/user-history');
+    const data = await res.json();
+    
+    const labels = data.map((_, i) => 'T-' + (data.length - i));
+    const finalPrices = data.map(d => parseFloat(d.final_price) || 0);
+    const basePrices = data.map(d => parseFloat(d.base_price) || 0);
+    
+    const ctx = document.getElementById('priceDynChart').getContext('2d');
+    
+    if (window.priceDynamicsInstance) {
+        window.priceDynamicsInstance.destroy();
+    }
+    
+    // Hide placeholder if data exists
+    const pCanvas = document.getElementById('priceDynChart');
+    const pPlaceholder = document.getElementById('priceDynPlaceholder');
+    if(data.length === 0) {
+        if(pCanvas) pCanvas.style.visibility = 'hidden';
+        if(pPlaceholder) pPlaceholder.style.display = 'block';
+    } else {
+        if(pCanvas) pCanvas.style.visibility = 'visible';
+        if(pPlaceholder) pPlaceholder.style.display = 'none';
+    }
+    
+    window.priceDynamicsInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.length ? labels : ['No Data'],
+            datasets: [
+                {
+                    label: 'Final Price',
+                    data: finalPrices,
+                    borderColor: '#7c3aed',
+                    backgroundColor: 'rgba(124,58,237,0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Base Price',
+                    data: basePrices,
+                    borderColor: '#94a3b8',
+                    borderDash: [5,5],
+                    tension: 0.4,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return '\u20B9' + value.toLocaleString('en-IN');
                         }
                     }
                 }
             }
-        });
-    }
-
-    const rCtx = document.getElementById('radarChart');
-    if(rCtx) {
-        radarChart = new Chart(rCtx.getContext('2d'), {
-            type: 'radar',
-            data: {
-                labels: ['Demand', 'Scarcity', 'Competition', 'Time', 'Segment', 'Season'],
-                datasets: [{ label: 'Current Profile', backgroundColor: 'rgba(16, 185, 129, 0.4)', borderColor: '#10B981', data: [0,0,0,0,0,0] }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 1, ticks: { display: false } } } }
-        });
-    }
-
-    const vCtx = document.getElementById('revChart');
-    if(vCtx) {
-        revChart = new Chart(vCtx.getContext('2d'), {
-            type: 'bar',
-            data: { labels: ['Discount', 'Base', 'Peak', 'Surge', 'Premium'], datasets: [{ label: 'Est Revenue', backgroundColor: '#3B82F6', data: [0,0,0,0,0] }] },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) { return currency + value.toLocaleString(undefined, {minimumFractionDigits: 2}); }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    const dCtx = document.getElementById('demandCurveChart');
-    if(dCtx) {
-        demandCurveChart = new Chart(dCtx.getContext('2d'), {
-            type: 'line',
-            data: { labels: ['10%','20%','30%','40%','50%','60%','70%','80%','90%'], datasets: [{ label: 'Price elasticity', borderColor: '#8B5CF6', backgroundColor: 'rgba(139, 92, 246, 0.2)', fill: true, tension: 0.4, data: [0,0,0,0,0,0,0,0,0] }] },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        ticks: {
-                            callback: function(value) { return currency + value.toLocaleString(undefined, {minimumFractionDigits: 2}); }
-                        }
-                    }
-                }
-            }
-        });
-    }
+        }
+    });
 }
 
-async function updateDashboardCharts(res, sum, base, comp) {
-    if(radarChart) {
-        const radarCanvas = document.getElementById('radarChart');
-        const radarPlaceholder = document.getElementById('radarPlaceholder');
-        if (radarCanvas) radarCanvas.style.visibility = 'visible';
-        if (radarPlaceholder) radarPlaceholder.style.display = 'none';
+/* ============================================
+   CHART 2 — MULTI-VARIABLE ANALYSIS (Radar)
+   ============================================ */
 
-        const demVal = parseFloat(document.getElementById('demand').value) || 1.0;
-        let radarDemand = 0.5;
-        if (demVal <= 0.2) radarDemand = 0.1;
-        else if (demVal <= 0.5) radarDemand = 0.3;
-        else if (demVal <= 1.0) radarDemand = 0.5;
-        else if (demVal <= 1.5) radarDemand = 0.8;
-        else radarDemand = 1.0;
-
-        const stockVal = parseInt(document.getElementById('stock').value) || 50;
-        let radarScarcity = (100 - stockVal) / 100.0;
-
-        let radarComp = 0.5;
-        if (base > comp) radarComp = 0.3;
-        else if (base < comp) radarComp = 0.7;
-
-        const timeVal = parseInt(document.getElementById('time').value) || 0;
-        let radarTime = timeVal / 3.0;
-
-        const segVal = parseFloat(document.getElementById('segment').value) || 1.0;
-        let radarSeg = 0.3;
-        if (segVal <= 0.8) radarSeg = 0.1; 
-        else if (segVal <= 1.0) radarSeg = 0.3; 
-        else if (segVal <= 1.3) radarSeg = 0.7; 
-        else radarSeg = 0.9; 
-
-        const seasonVal = parseFloat(document.getElementById('season').value) || 1.0;
-        let radarSeason = 0.2;
-        if (seasonVal <= 0.7) radarSeason = 0.1; 
-        else if (seasonVal <= 1.0) radarSeason = 0.2; 
-        else if (seasonVal <= 1.2) radarSeason = 0.4; 
-        else if (seasonVal <= 1.4) radarSeason = 0.6; 
-        else radarSeason = 1.0; 
-
-        radarChart.data.datasets[0].data = [radarDemand, radarScarcity, radarComp, radarTime, radarSeg, radarSeason];
-        radarChart.update();
-    }
-    if(revChart) {
-        revChart.data.datasets[0].data = [base*0.85, base*1.00, base*1.30, base*1.65, base*2.10];
-        
-        revChart.options.scales = revChart.options.scales || {};
-        revChart.options.scales.y = revChart.options.scales.y || {};
-        revChart.options.scales.y.min = 0;
-        revChart.options.scales.y.max = base * 2.5;
-        
-        revChart.update();
-    }
-    if(demandCurveChart) {
-        let arr = [
-            base * 1.60,
-            base * 1.50,
-            base * 1.40,
-            base * 1.28,
-            base * 1.15,
-            base * 1.00,
-            base * 0.88,
-            base * 0.78,
-            base * 0.70
-        ];
-        demandCurveChart.data.datasets[0].data = arr;
-        
-        demandCurveChart.options.scales = demandCurveChart.options.scales || {};
-        demandCurveChart.options.scales.y = demandCurveChart.options.scales.y || {};
-        demandCurveChart.options.scales.y.min = base * 0.65;
-        demandCurveChart.options.scales.y.max = base * 1.70;
-        
-        demandCurveChart.update();
-    }
-
-    if(priceDynChart) {
-        try {
-            const hist = await apiFetch('/api/history?limit=7');
-            const pCanvas = document.getElementById('priceDynChart');
-            const pPlaceholder = document.getElementById('priceDynPlaceholder');
-            
-            if (!hist || hist.length === 0) {
-                if (pCanvas) pCanvas.style.visibility = 'hidden';
-                if (pPlaceholder) pPlaceholder.style.display = 'block';
-            } else {
-                if (pCanvas) pCanvas.style.visibility = 'visible';
-                if (pPlaceholder) pPlaceholder.style.display = 'none';
-                
-                let recs = hist.slice().reverse(); // oldest to newest
-                priceDynChart.data.labels = recs.map((r, i) => `T-${recs.length-i}`);
-                priceDynChart.data.datasets[0].data = recs.map(r => r.final_price);
-                priceDynChart.data.datasets[1].data = recs.map(r => r.base_price);
-                
-                if (priceDynChart.options.scales && priceDynChart.options.scales.y) {
-                    delete priceDynChart.options.scales.y.min;
-                    delete priceDynChart.options.scales.y.max;
+var radarChart;
+function initRadarChart() {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Demand','Scarcity','Competition','Time','Segment','Season'],
+            datasets: [{
+                label: 'Current Profile',
+                data: [0, 0, 0, 0, 0, 0],
+                backgroundColor: 'rgba(16,185,129,0.2)',
+                borderColor: '#10b981',
+                pointBackgroundColor: '#10b981'
+            }]
+        },
+        options: {
+            scales: {
+                r: {
+                    min: 0,
+                    max: 1,
+                    ticks: { stepSize: 0.2 }
                 }
-                
-                priceDynChart.update();
             }
-        } catch (e) {
-            console.error("Failed to load history for price dyn chart", e);
         }
-    }
+    });
+}
+
+function updateRadarChart() {
+    const radarCanvas = document.getElementById('radarChart');
+    const radarPlaceholder = document.getElementById('radarPlaceholder');
+    if (radarCanvas) radarCanvas.style.visibility = 'visible';
+    if (radarPlaceholder) radarPlaceholder.style.display = 'none';
+
+    // Map exact dropdown values (e.g. "0.2") to requested 0.1, 0.3... values
+    const demandMap = {
+        '0.2': 0.1, '0.5': 0.3, '1.0': 0.5, 
+        '1.5': 0.8, '2.0': 0.9, '3.0': 1.0
+    };
+    const segmentMap = {
+        '1.0': 0.3, '1.3': 0.7, '1.5': 0.9, '0.8': 0.1
+    };
+    const seasonMap = {
+        '1.0': 0.2, '0.7': 0.1, 
+        '1.4': 0.6, '1.6': 1.0, '1.2': 0.4
+    };
+
+    const demandVal = demandMap[document.getElementById('demand').value] || 0.5;
+    const inventory = parseFloat(document.getElementById('stock').value) || 50;
+    const scarcityVal = parseFloat(((100 - inventory) / 100).toFixed(2));
+    const baseP = parseFloat(document.getElementById('base_price').value) || 1;
+    const compP = parseFloat(document.getElementById('comp_price').value) || 1;
+    const compVal = baseP > compP ? 0.3 : (baseP < compP ? 0.7 : 0.5);
+    const timeVal = parseFloat(document.getElementById('time').value) / 3 || 0.5;
+    const segVal = segmentMap[document.getElementById('segment').value] || 0.3;
+    const seasonVal = seasonMap[document.getElementById('season').value] || 0.2;
+
+    radarChart.data.datasets[0].data = [
+        demandVal, scarcityVal, compVal, timeVal, segVal, seasonVal
+    ];
+    radarChart.update();
+}
+
+/* ============================================
+   CHART 3 — REVENUE OPTIMIZATION SCENARIOS
+   ============================================ */
+
+var revenueChart;
+function initRevenueChart() {
+    const ctx = document.getElementById('revChart').getContext('2d');
+    revenueChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Discount', 'Base', 'Peak', 'Surge', 'Premium'],
+            datasets: [{
+                label: 'Est Revenue',
+                data: [0, 0, 0, 0, 0],
+                backgroundColor: 'rgba(99,102,241,0.7)'
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '\u20B9' + value.toLocaleString('en-IN');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateRevenueChart() {
+    const base = parseFloat(document.getElementById('base_price').value) || 250;
+    const values = [
+        parseFloat((base * 0.85).toFixed(2)),
+        parseFloat((base * 1.00).toFixed(2)),
+        parseFloat((base * 1.30).toFixed(2)),
+        parseFloat((base * 1.65).toFixed(2)),
+        parseFloat((base * 2.10).toFixed(2))
+    ];
+    revenueChart.data.datasets[0].data = values;
+    revenueChart.options.scales.y.max = parseFloat((base * 2.5).toFixed(2));
+    revenueChart.update();
+}
+
+/* ============================================
+   CHART 4 — DEMAND vs PRICE CURVE
+   ============================================ */
+
+var demandChart;
+function initDemandChart() {
+    const ctx = document.getElementById('demandCurveChart').getContext('2d');
+    demandChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['10%','20%','30%','40%','50%','60%','70%','80%','90%'],
+            datasets: [{
+                label: 'Price elasticity',
+                data: [0,0,0,0,0,0,0,0,0],
+                borderColor: '#7c3aed',
+                backgroundColor: 'rgba(124,58,237,0.15)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return '\u20B9' + value.toLocaleString('en-IN');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateDemandChart() {
+    const base = parseFloat(document.getElementById('base_price').value) || 250;
+    const multipliers = [1.60,1.50,1.40,1.28,1.15,1.00,0.88,0.78,0.70];
+    const values = multipliers.map(m => parseFloat((base * m).toFixed(2)));
+    demandChart.data.datasets[0].data = values;
+    demandChart.options.scales.y.min = parseFloat((base * 0.65).toFixed(2));
+    demandChart.options.scales.y.max = parseFloat((base * 1.70).toFixed(2));
+    demandChart.update();
 }
 
 function setupListeners() {

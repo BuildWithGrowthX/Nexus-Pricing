@@ -266,6 +266,18 @@ def save_pricing():
         print(f"Error saving pricing: {e}")
         return jsonify({"error": "Failed to save data."}), 500
 
+@app.route('/api/user-history')
+def user_history():
+    if 'username' not in session:
+        return jsonify([])
+    # Use actual mongo structure (user_pricing_history instead of DB calculations)
+    records = list(mongo.db.user_pricing_history.find(
+        {'user_id': session['username']},
+        {'_id': 0, 'base_price': 1, 'final_price': 1}
+    ).sort('timestamp', -1).limit(7))
+    records.reverse()
+    return jsonify(records)
+
 @app.route('/api/history', methods=['GET'])
 def get_history():
     if mongo is None or mongo.db is None:
