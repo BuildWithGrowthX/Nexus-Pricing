@@ -472,7 +472,18 @@ function initCharts() {
                 { label: 'Final Price', borderColor: '#3B82F6', tension: 0.4, data: [] },
                 { label: 'Base Price', borderColor: '#94A3B8', borderDash: [5,5], data: [] }
             ]},
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) { return currency + value.toLocaleString(undefined, {minimumFractionDigits: 2}); }
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -484,7 +495,7 @@ function initCharts() {
                 labels: ['Demand', 'Scarcity', 'Competition', 'Time', 'Segment', 'Season'],
                 datasets: [{ label: 'Current Profile', backgroundColor: 'rgba(16, 185, 129, 0.4)', borderColor: '#10B981', data: [0,0,0,0,0,0] }]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: -1, max: 2, ticks: { display: false } } } }
+            options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 1, ticks: { display: false } } } }
         });
     }
 
@@ -493,7 +504,18 @@ function initCharts() {
         revChart = new Chart(vCtx.getContext('2d'), {
             type: 'bar',
             data: { labels: ['Discount', 'Base', 'Peak', 'Surge', 'Premium'], datasets: [{ label: 'Est Revenue', backgroundColor: '#3B82F6', data: [0,0,0,0,0] }] },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return currency + value.toLocaleString(undefined, {minimumFractionDigits: 2}); }
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -501,40 +523,94 @@ function initCharts() {
     if(dCtx) {
         demandCurveChart = new Chart(dCtx.getContext('2d'), {
             type: 'line',
-            data: { labels: ['10%','30%','50%','70%','90%'], datasets: [{ label: 'Price elasticity', borderColor: '#8B5CF6', backgroundColor: 'rgba(139, 92, 246, 0.2)', fill: true, tension: 0.4, data: [0,0,0,0,0] }] },
-            options: { responsive: true, maintainAspectRatio: false }
+            data: { labels: ['10%','20%','30%','40%','50%','60%','70%','80%','90%'], datasets: [{ label: 'Price elasticity', borderColor: '#8B5CF6', backgroundColor: 'rgba(139, 92, 246, 0.2)', fill: true, tension: 0.4, data: [0,0,0,0,0,0,0,0,0] }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) { return currency + value.toLocaleString(undefined, {minimumFractionDigits: 2}); }
+                        }
+                    }
+                }
+            }
         });
     }
 }
 
 async function updateDashboardCharts(res, sum, base, comp) {
-    if(radarChart && sum) {
+    if(radarChart) {
         const radarCanvas = document.getElementById('radarChart');
         const radarPlaceholder = document.getElementById('radarPlaceholder');
         if (radarCanvas) radarCanvas.style.visibility = 'visible';
         if (radarPlaceholder) radarPlaceholder.style.display = 'none';
 
-        radarChart.data.datasets[0].data = [sum.dem_score, sum.sca_score, sum.comp_score, sum.time_score, sum.seg_score, sum.sea_score];
+        const demVal = parseFloat(document.getElementById('demand').value) || 1.0;
+        let radarDemand = 0.5;
+        if (demVal <= 0.2) radarDemand = 0.1;
+        else if (demVal <= 0.5) radarDemand = 0.3;
+        else if (demVal <= 1.0) radarDemand = 0.5;
+        else if (demVal <= 1.5) radarDemand = 0.8;
+        else radarDemand = 1.0;
+
+        const stockVal = parseInt(document.getElementById('stock').value) || 50;
+        let radarScarcity = (100 - stockVal) / 100.0;
+
+        let radarComp = 0.5;
+        if (base > comp) radarComp = 0.3;
+        else if (base < comp) radarComp = 0.7;
+
+        const timeVal = parseInt(document.getElementById('time').value) || 0;
+        let radarTime = timeVal / 3.0;
+
+        const segVal = parseFloat(document.getElementById('segment').value) || 1.0;
+        let radarSeg = 0.3;
+        if (segVal <= 0.8) radarSeg = 0.1; 
+        else if (segVal <= 1.0) radarSeg = 0.3; 
+        else if (segVal <= 1.3) radarSeg = 0.7; 
+        else radarSeg = 0.9; 
+
+        const seasonVal = parseFloat(document.getElementById('season').value) || 1.0;
+        let radarSeason = 0.2;
+        if (seasonVal <= 0.7) radarSeason = 0.1; 
+        else if (seasonVal <= 1.0) radarSeason = 0.2; 
+        else if (seasonVal <= 1.2) radarSeason = 0.4; 
+        else if (seasonVal <= 1.4) radarSeason = 0.6; 
+        else radarSeason = 1.0; 
+
+        radarChart.data.datasets[0].data = [radarDemand, radarScarcity, radarComp, radarTime, radarSeg, radarSeason];
         radarChart.update();
     }
-    if(revChart && res) {
-        revChart.data.datasets[0].data = [base*0.85, base*1.00, base*1.25, base*1.60, base*2.00];
+    if(revChart) {
+        revChart.data.datasets[0].data = [base*0.85, base*1.00, base*1.30, base*1.65, base*2.10];
         
         revChart.options.scales = revChart.options.scales || {};
         revChart.options.scales.y = revChart.options.scales.y || {};
-        revChart.options.scales.y.min = Math.floor(base * 0.7);
-        revChart.options.scales.y.max = Math.ceil(base * 2.2);
+        revChart.options.scales.y.min = 0;
+        revChart.options.scales.y.max = base * 2.5;
         
         revChart.update();
     }
-    if(demandCurveChart && res) {
-        let arr = [base*1.8, base*1.4, base*1.0, base*0.8, base*0.7];
+    if(demandCurveChart) {
+        let arr = [
+            base * 1.60,
+            base * 1.50,
+            base * 1.40,
+            base * 1.28,
+            base * 1.15,
+            base * 1.00,
+            base * 0.88,
+            base * 0.78,
+            base * 0.70
+        ];
         demandCurveChart.data.datasets[0].data = arr;
         
         demandCurveChart.options.scales = demandCurveChart.options.scales || {};
         demandCurveChart.options.scales.y = demandCurveChart.options.scales.y || {};
-        demandCurveChart.options.scales.y.min = base * 0.7;
-        demandCurveChart.options.scales.y.max = base * 1.8;
+        demandCurveChart.options.scales.y.min = base * 0.65;
+        demandCurveChart.options.scales.y.max = base * 1.70;
         
         demandCurveChart.update();
     }
