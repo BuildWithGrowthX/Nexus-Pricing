@@ -129,19 +129,21 @@
             <div class="mb-4 text-muted">
                 Formula: Base * (1 + 0.45*Demand + 0.30*Scarcity + 0.15*Comp + 0.10*Time + 0.08*Seg + 0.07*Season)
             </div>
-            <table class="explain-table">
-                <thead>
-                    <tr>
-                        <th>Factor</th>
-                        <th>Weight</th>
-                        <th>Contribution %</th>
-                        <th>Impact</th>
-                    </tr>
-                </thead>
-                <tbody id="explain-body">
-                    <!-- Injected by JS -->
-                </tbody>
-            </table>
+            <div style="overflow-x: auto; width: 100%;">
+                <table class="explain-table">
+                    <thead>
+                        <tr>
+                            <th>Factor</th>
+                            <th>Weight</th>
+                            <th>Contribution %</th>
+                            <th>Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody id="explain-body">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </div>
