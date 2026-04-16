@@ -505,7 +505,7 @@ async function initPriceDynamicsChart() {
                     beginAtZero: false,
                     ticks: {
                         callback: function(value) {
-                            return '\u20B9' + value.toLocaleString('en-IN');
+                            return currency + value.toLocaleString();
                         }
                     }
                 }
@@ -607,7 +607,7 @@ function initRevenueChart() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '\u20B9' + value.toLocaleString('en-IN');
+                            return currency + value.toLocaleString();
                         }
                     }
                 }
@@ -658,7 +658,7 @@ function initDemandChart() {
                     beginAtZero: false,
                     ticks: {
                         callback: function(value) {
-                            return '\u20B9' + value.toLocaleString('en-IN');
+                            return currency + value.toLocaleString();
                         }
                     }
                 }
