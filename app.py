@@ -97,6 +97,7 @@ def register():
                 "password": generate_password_hash(password),
                 "email": "",
                 "plan": "free",
+                "is_new_user": True,
                 "created_at": datetime.now(),
                 "last_login": datetime.now()
             })
@@ -161,6 +162,22 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/api/complete-onboarding', methods=['POST'])
+def complete_onboarding():
+    if mongo is None or mongo.db is None:
+        return jsonify({"error": "Database unavailable"}), 503
+    if 'username' not in session: 
+        return jsonify({'error': 'Unauthorized'}), 401
+    try:
+        mongo.db.users.update_one(
+            {"username": session['username']},
+            {"$set": {"is_new_user": False}}
+        )
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"Error completing onboarding: {e}")
+        return jsonify({"error": "Failed to update onboarding state"}), 500
+
 # ================================================================
 # VIEWS
 # ================================================================
@@ -168,7 +185,14 @@ def logout():
 @app.route('/')
 def dashboard():
     if 'username' not in session: return redirect(url_for('login'))
-    return render_template('dashboard.html', username=session['username'])
+    
+    is_new_user = False
+    if mongo and mongo.db is not None:
+        user_doc = mongo.db.users.find_one({"username": session['username']})
+        if user_doc:
+            is_new_user = user_doc.get("is_new_user", False)
+            
+    return render_template('dashboard.html', username=session['username'], is_new_user=is_new_user)
 
 @app.route('/simulator')
 def simulator():

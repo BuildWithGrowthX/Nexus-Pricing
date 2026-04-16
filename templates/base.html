@@ -15,7 +15,7 @@
         <div class="nav-links" id="nav-links">
             {% if session.get('username') %}
                 <a href="{{ url_for('dashboard') }}" class="btn-link">Dashboard</a>
-                <a href="{{ url_for('simulator') }}" class="btn-link">Simulator</a>
+                <a href="{{ url_for('simulator') }}" id="nav-simulator" class="btn-link">Simulator</a>
                 <a href="{{ url_for('analytics') }}" class="btn-link">Analytics</a>
                 <a href="{{ url_for('history') }}" class="btn-link">History</a>
                 <a href="{{ url_for('settings_page') }}" class="btn-link">Settings</a>
