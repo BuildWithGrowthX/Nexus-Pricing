@@ -551,7 +551,7 @@ function initRadarChart() {
             labels: ['Demand','Scarcity','Competition','Time','Segment','Season'],
             datasets: [{
                 label: 'Current Profile',
-                data: [0, 0, 0, 0, 0, 0],
+                data: [0.3, 0.3, 0.3, 0.3, 0.3, 0.3],
                 backgroundColor: 'rgba(16,185,129,0.2)',
                 borderColor: '#10b981',
                 pointBackgroundColor: '#10b981'
@@ -560,8 +560,8 @@ function initRadarChart() {
         options: {
             scales: {
                 r: {
-                    min: 0,
-                    max: 1,
+                    suggestedMin: 0,
+                    suggestedMax: 1,
                     ticks: { 
                         stepSize: 0.2,
                         display: false
@@ -608,7 +608,7 @@ function updateRadarChart() {
     radarChart.data.datasets[0].data = [
         demandVal, scarcityVal, compVal, timeVal, segVal, seasonVal
     ];
-    radarChart.update();
+    radarChart.update('active');
 }
 
 /* ============================================
