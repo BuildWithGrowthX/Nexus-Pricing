@@ -21,10 +21,18 @@
             </div>
         </div>
         
-        <div class="form-group"><label>Demand Factor (%)</label>
+        <div class="form-group">
+            <div style="display: flex; justify-content: space-between;">
+                <label>Demand Factor (%)</label>
+                <span id="demandA-val" style="color:#a78bfa; font-size:0.9rem; font-weight:bold;">100%</span>
+            </div>
             <input type="range" id="demandA" min="0" max="300" step="10" value="100">
         </div>
-        <div class="form-group"><label>Scarcity Factor (%)</label>
+        <div class="form-group">
+            <div style="display: flex; justify-content: space-between;">
+                <label>Scarcity Factor (%)</label>
+                <span id="scarcityA-val" style="color:#a78bfa; font-size:0.9rem; font-weight:bold;">50%</span>
+            </div>
             <input type="range" id="scarcityA" min="0" max="200" value="50">
         </div>
         
@@ -51,10 +59,18 @@
             </div>
         </div>
         
-        <div class="form-group"><label>Demand Factor (%)</label>
+        <div class="form-group">
+            <div style="display: flex; justify-content: space-between;">
+                <label>Demand Factor (%)</label>
+                <span id="demandB-val" style="color:#a78bfa; font-size:0.9rem; font-weight:bold;">200%</span>
+            </div>
             <input type="range" id="demandB" min="0" max="300" step="10" value="200">
         </div>
-        <div class="form-group"><label>Scarcity Factor (%)</label>
+        <div class="form-group">
+            <div style="display: flex; justify-content: space-between;">
+                <label>Scarcity Factor (%)</label>
+                <span id="scarcityB-val" style="color:#a78bfa; font-size:0.9rem; font-weight:bold;">10%</span>
+            </div>
             <input type="range" id="scarcityB" min="0" max="200" value="10">
         </div>
         
@@ -153,6 +169,11 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('predictedPriceB').textContent = '₹' + priceB.toFixed(2);
       document.getElementById('revEstA').textContent = 'Rev Est: ₹' + revA.toLocaleString('en-IN');
       document.getElementById('revEstB').textContent = 'Rev Est: ₹' + revB.toLocaleString('en-IN');
+
+      document.getElementById('demandA-val').textContent = document.getElementById('demandA').value + '%';
+      document.getElementById('scarcityA-val').textContent = document.getElementById('scarcityA').value + '%';
+      document.getElementById('demandB-val').textContent = document.getElementById('demandB').value + '%';
+      document.getElementById('scarcityB-val').textContent = document.getElementById('scarcityB').value + '%';
 
       revenueChart.data.datasets[0].data = [revA, revB];
       revenueChart.update();
