@@ -698,11 +698,11 @@ function initDemandChart() {
 
 function updateDemandChart() {
     const base = parseFloat(document.getElementById('base_price').value) || 250;
-    const multipliers = [1.60,1.50,1.40,1.28,1.15,1.00,0.88,0.78,0.70];
+    const multipliers = [0.70, 0.78, 0.88, 1.00, 1.15, 1.28, 1.40, 1.50, 1.60];
     const values = multipliers.map(m => parseFloat((base * m).toFixed(2)));
     demandChart.data.datasets[0].data = values;
-    demandChart.options.scales.y.min = parseFloat((base * 0.65).toFixed(2));
-    demandChart.options.scales.y.max = parseFloat((base * 1.70).toFixed(2));
+    demandChart.options.scales.y.min = parseFloat((base * 0.60).toFixed(2));
+    demandChart.options.scales.y.max = parseFloat((base * 1.75).toFixed(2));
     demandChart.update();
 }
 
