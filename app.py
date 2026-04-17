@@ -273,8 +273,8 @@ def user_history():
     # Use actual mongo structure (user_pricing_history instead of DB calculations)
     records = list(mongo.db.user_pricing_history.find(
         {'user_id': session['username']},
-        {'_id': 0, 'base_price': 1, 'final_price': 1}
-    ).sort('timestamp', -1).limit(7))
+        {'_id': 0, 'base_price': 1, 'final_price': 1, 'category': 1}
+    ).sort('timestamp', -1).limit(50))
     records.reverse()
     return jsonify(records)
 

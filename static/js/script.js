@@ -321,6 +321,7 @@ async function saveRecord() {
         });
         showToast("Saved to database successfully");
         renderDashboardStats();
+        if (typeof initPriceDynamicsChart === 'function') initPriceDynamicsChart();
     } catch(e) {
         let q = getOfflineQueue();
         q.push(payload);
@@ -467,6 +468,9 @@ function updatePriceDynChart() {
     if (catEl) {
         data = data.filter(d => d.category === catEl.value);
     }
+    
+    // Keep only the most recent 7 points for clean visualization
+    data = data.slice(-7);
     
     // Sort chronological just in case, but data usually comes pre-sorted from API
     // The data is displayed T-N, ..., T-3, T-2, T-1
