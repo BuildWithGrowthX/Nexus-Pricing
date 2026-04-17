@@ -10,17 +10,18 @@ else document.body.classList.remove('light-theme');
 // Global charts
 let simChart;
 let calcDebounce;
+let globalHistoryCache = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Load global settings FIRST so currency and weights are correct for charts
+    await loadGlobalSettings();
+
     initPriceDynamicsChart();
     initRadarChart();
     initRevenueChart();
     initDemandChart();
     setupListeners();
     syncOfflineQueue(); // Attempt to sync on load
-
-    // Load global settings
-    await loadGlobalSettings();
 
     // Update currency labels across the app
     document.querySelectorAll('.currency-label').forEach(el => el.innerText = currency);
@@ -449,9 +450,26 @@ function renderSettingsUI() {
    ============================================ */
 
 async function initPriceDynamicsChart() {
-    const res = await fetch('/api/user-history');
-    const data = await res.json();
+    try {
+        const res = await fetch('/api/user-history');
+        globalHistoryCache = await res.json();
+    } catch(e) {
+        globalHistoryCache = [];
+    }
+    updatePriceDynChart();
+}
+
+function updatePriceDynChart() {
+    if (!globalHistoryCache) return;
     
+    let data = globalHistoryCache;
+    const catEl = document.getElementById('category');
+    if (catEl) {
+        data = data.filter(d => d.category === catEl.value);
+    }
+    
+    // Sort chronological just in case, but data usually comes pre-sorted from API
+    // The data is displayed T-N, ..., T-3, T-2, T-1
     const labels = data.map((_, i) => 'T-' + (data.length - i));
     const finalPrices = data.map(d => parseFloat(d.final_price) || 0);
     const basePrices = data.map(d => parseFloat(d.base_price) || 0);
@@ -469,6 +487,7 @@ async function initPriceDynamicsChart() {
     if(data.length === 0) {
         if(pCanvas) pCanvas.style.visibility = 'hidden';
         if(pPlaceholder) pPlaceholder.style.display = 'block';
+        return;
     } else {
         if(pCanvas) pCanvas.style.visibility = 'visible';
         if(pPlaceholder) pPlaceholder.style.display = 'none';
@@ -477,7 +496,7 @@ async function initPriceDynamicsChart() {
     window.priceDynamicsInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels.length ? labels : ['No Data'],
+            labels: labels,
             datasets: [
                 {
                     label: 'Final Price',
@@ -539,7 +558,14 @@ function initRadarChart() {
                 r: {
                     min: 0,
                     max: 1,
-                    ticks: { stepSize: 0.2 }
+                    ticks: { 
+                        stepSize: 0.2,
+                        display: false
+                    },
+                    pointLabels: {
+                        font: { size: 12 },
+                        padding: 15
+                    }
                 }
             }
         }
@@ -682,6 +708,9 @@ function setupListeners() {
         inp.addEventListener('input', (e) => {
             if(e.target.id === 'stock') document.getElementById('stock-val').innerText = e.target.value + ' units';
             if(e.target.id === 'time') document.getElementById('time-val').innerText = ['Low','Medium','High','Urgent'][e.target.value];
+            if(e.target.id === 'category') {
+                if (typeof updatePriceDynChart === 'function') updatePriceDynChart();
+            }
             calculateLive();
         });
     });
