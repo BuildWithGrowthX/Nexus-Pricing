@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusPricing — AI Dynamic Pricing Engine for Hotels, Flights, Rides, E-commerce and SaaS</title>
+    
+    <meta name="description" content="Set the perfect price automatically using Machine Learning. 95% accuracy across 5 industries. Free to try. Trusted by hotels, flight operators, ride services and e-commerce sellers in India.">
+    <meta name="keywords" content="dynamic pricing tool India, AI pricing software, hotel dynamic pricing, flight pricing optimization, ecommerce pricing tool, surge pricing calculator, SaaS pricing strategy, ML pricing engine, dynamic pricing machine learning">
+    
+    <meta property="og:title" content="NexusPricing — AI Dynamic Pricing Engine">
+    <meta property="og:description" content="Set the perfect price automatically using Machine Learning. 95% accuracy.">
+    <meta property="og:url" content="https://nexus-pricing.onrender.com">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NexusPricing — AI Dynamic Pricing Engine">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .landing-hero {
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #F0EFFF, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .hero-buttons .btn-primary { font-size: 1.1rem; padding: 1rem 2rem; }
+        .hero-buttons .btn-outline { font-size: 1.1rem; padding: 1rem 2rem; border-color: var(--text-muted); color: var(--text-main); }
+        .hero-buttons .btn-outline:hover { border-color: var(--primary); background: rgba(139, 92, 246, 0.1); }
+        
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .stat-item i { color: var(--primary); }
+        
+        .section-padding { padding: 5rem 2rem; }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+        
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+        .grid-6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+        .grid-5 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+        
+        .icon-card {
+            padding: 2.5rem 2rem;
+            text-align: center;
+            height: 100%;
+        }
+        .icon-card i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+        .icon-card h3 { margin-bottom: 1rem; font-size: 1.3rem; }
+        .icon-card p { color: var(--text-secondary); line-height: 1.6; }
+        
+        .step-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .step-flow::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 15%;
+            right: 15%;
+            height: 2px;
+            background: dashed 2px var(--border-color);
+            z-index: 0;
+        }
+        .step-item {
+            text-align: center;
+            width: 30%;
+            position: relative;
+            z-index: 1;
+        }
+        .step-number {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-dark);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+        }
+        
+        .pricing-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; max-width: 1200px; margin: 0 auto; }
+        .pricing-card {
+            padding: 3rem 2rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .pricing-card.popular {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
+            transform: scale(1.05);
+            z-index: 2;
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.05) 0%, rgba(19, 19, 31, 1) 100%);
+        }
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 0.3rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .price-title { font-size: 1.2rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;}
+        .price { font-size: 3rem; font-weight: 700; margin: 0 0 2rem; font-family: 'Space Grotesk', sans-serif; color: var(--text-main);}
+        .price span { font-size: 1rem; color: var(--text-muted); font-weight: 400;}
+        .pricing-features { list-style: none; margin-bottom: 2rem; flex-grow: 1; }
+        .pricing-features li { margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.75rem; color: var(--text-secondary); line-height: 1.5;}
+        .pricing-features i { color: var(--accent-green); margin-top: 4px; font-size: 1rem;}
+        
+        .faq-container { max-width: 800px; margin: 0 auto; }
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .faq-question {
+            padding: 1.5rem;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .faq-question i { transition: transform 0.3s; color: var(--primary); }
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .faq-item.active .faq-answer {
+            padding: 0 1.5rem 1.5rem;
+            max-height: 300px;
+        }
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+        
+        .cta-section {
+            padding: 6rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(13, 13, 26, 0.98)), url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CgkJPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgxMzksIDkyLCAyNDYsIDAuMSkiLz4KCTwvc3ZnPg==');
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            margin: 4rem 0 0;
+        }
+        
+        .footer {
+            padding: 4rem 2rem 2rem;
+            background: var(--bg-dark);
+        }
+        .footer-content { display: flex; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 2rem; max-width: 1200px; margin: 0 auto 2rem; }
+        .footer-links { display: flex; gap: 2rem; flex-wrap: wrap;}
+        .footer-links a { color: var(--text-secondary); }
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .big-stat {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Space Grotesk', sans-serif;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+        
+        @media (max-width: 900px) {
+            .grid-6 { grid-template-columns: repeat(2, 1fr); }
+            .pricing-cards { grid-template-columns: 1fr; max-width: 400px;}
+            .pricing-card.popular { transform: none; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .grid-3, .grid-6 { grid-template-columns: 1fr; }
+            .step-flow { flex-direction: column; gap: 3rem; align-items: center; }
+            .step-flow::before { display: none; }
+            .step-item { width: 100%; max-width: 300px;}
+            .footer-content { flex-direction: column; align-items: center; text-align: center; }
+            .hero-buttons { flex-direction: column; }
+            .stats-row { flex-direction: column; align-items: center; gap: 1rem; }
+            .big-stat { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SECTION 1: NAVIGATION BAR -->
+    <nav class="navbar glass-panel">
+        <a href="/" class="nav-brand">Nexus<span>Pricing</span></a>
+        
+        <button class="mobile-menu-btn" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <div class="nav-links" id="navLinks">
+            <a href="#features" class="btn-link">Features</a>
+            <a href="#how-it-works" class="btn-link">How it Works</a>
+            <a href="#pricing" class="btn-link">Pricing</a>
+            <a href="{{ url_for('login') }}" class="btn-link" style="margin-left: 1rem;">Login</a>
+            <a href="{{ url_for('register') }}" class="btn-primary" style="margin-left: 0.5rem;">Get Started Free</a>
+        </div>
+    </nav>
+
+    <!-- SECTION 2: HERO SECTION -->
+    <section class="landing-hero animate-on-scroll visible">
+        <h1 class="hero-title">Set the Perfect Price. Every Time. Automatically.</h1>
+        <p class="hero-subtitle">NexusPricing uses real Machine Learning to calculate the optimal price for your Hotel, Flight, Ride service, E-commerce store or SaaS product — based on demand, scarcity, competition and season in real time.</p>
+        
+        <div class="hero-buttons">
+            <a href="{{ url_for('register') }}" class="btn-primary">Get Started Free</a>
+            <a href="#how-it-works" class="btn-outline">See How It Works</a>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 1rem;">No credit card required. Free forever.</p>
+        
+        <div class="stats-row">
+            <div class="stat-item"><i class="fas fa-check-circle"></i> 95% ML Accuracy</div>
+            <div class="stat-item"><i class="fas fa-database"></i> 3,754 Training Records</div>
+            <div class="stat-item"><i class="fas fa-industry"></i> 5 Industries</div>
+            <div class="stat-item"><i class="fas fa-cloud"></i> Live on Cloud</div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: PROBLEM SECTION -->
+    <section class="section-padding container animate-on-scroll">
+        <h2 class="section-title">Traditional Pricing is Costing You Money</h2>
+        <p class="section-subtitle">Sticking to a single fixed price is the fastest way to lose revenue in a dynamic market.</p>
+        
+        <div class="grid-3">
+            <div class="glass-panel icon-card">
+                <i class="fas fa-arrow-trend-down" style="color: var(--accent-red)"></i>
+                <h3>Fixed prices miss opportunities</h3>
+                <p>When demand spikes you charge the same price. You leave money on the table every single day.</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-clock" style="color: var(--accent-orange)"></i>
+                <h3>Manual pricing wastes time</h3>
+                <p>Checking competitors, adjusting spreadsheets, guessing the right price. Hours wasted weekly.</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-users-slash" style="color: var(--text-muted)"></i>
+                <h3>Wrong prices lose customers</h3>
+                <p>Too high and customers leave. Too low and you lose profit. Getting it right manually is impossible.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: SOLUTION SECTION -->
+    <section class="section-padding container animate-on-scroll">
+        <h2 class="section-title">NexusPricing Solves This With AI</h2>
+        <p class="section-subtitle">Our Machine Learning engine analyses 6 real market factors and calculates your optimal price in under one second.</p>
+        
+        <div class="grid-6">
+            <div class="glass-panel icon-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Market Demand</h3>
+                <p>High demand = higher price automatically</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-box-open"></i>
+                <h3>Stock Scarcity</h3>
+                <p>Low inventory triggers smart price rise</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-chess-knight"></i>
+                <h3>Competitor Price</h3>
+                <p>Stay competitive without manual checks</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-hourglass-half"></i>
+                <h3>Time Sensitivity</h3>
+                <p>Urgent bookings priced correctly</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-user-tag"></i>
+                <h3>Customer Segment</h3>
+                <p>Premium customers, premium prices</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-calendar-alt"></i>
+                <h3>Season and Events</h3>
+                <p>Peak season pricing done right</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: HOW IT WORKS -->
+    <section id="how-it-works" class="section-padding container animate-on-scroll">
+        <h2 class="section-title">Get Your Optimal Price in 3 Simple Steps</h2>
+        <p class="section-subtitle">No coding required. Just plug in your details and let the ML model do the heavy lifting.</p>
+        
+        <div class="step-flow" style="margin-top: 4rem;">
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <h3>Enter Details</h3>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">Input your product name, category, base price and current market conditions. Takes 30 seconds.</p>
+            </div>
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <h3>AI Calculates</h3>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">Our Machine Learning model trained on 3,754 real market records analyses all factors and calculates your optimal price instantly.</p>
+            </div>
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <h3>Save and Grow</h3>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">Save your pricing history, run A/B tests, view analytics and watch your revenue grow over time.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 6: FEATURES SECTION -->
+    <section id="features" class="section-padding container animate-on-scroll">
+        <h2 class="section-title">Everything You Need to Price Smarter</h2>
+        <p class="section-subtitle">A complete suite of tools to help you optimize revenue.</p>
+        
+        <div class="grid-5">
+            <div class="glass-panel icon-card">
+                <i class="fas fa-tachometer-alt"></i>
+                <h3>AI Dashboard</h3>
+                <p style="font-size: 0.9rem;">Real-time ML predictions alongside rule-based pricing. See both and choose the best strategy.</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-vial"></i>
+                <h3>A/B Testing Simulator</h3>
+                <p style="font-size: 0.9rem;">Test two pricing strategies side by side. System automatically declares the revenue winner.</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-search-plus"></i>
+                <h3>Decision Explainability</h3>
+                <p style="font-size: 0.9rem;">Never wonder why. See exactly which factor contributed how much to every price — transparently.</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-chart-bar"></i>
+                <h3>Pricing Analytics</h3>
+                <p style="font-size: 0.9rem;">Full history table, export to CSV, track your average multiplier and pricing trends over time.</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-sliders-h"></i>
+                <h3>ML Model Tuning</h3>
+                <p style="font-size: 0.9rem;">Adjust demand, scarcity and competition weights manually. You stay in control of the AI.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 7: INDUSTRIES SECTION -->
+    <section class="section-padding container animate-on-scroll">
+        <h2 class="section-title">Built for 5 Major Industries</h2>
+        <p class="section-subtitle">Dedicated ML models trained specifically for your vertical.</p>
+        
+        <div class="grid-5">
+            <div class="glass-panel icon-card">
+                <i class="fas fa-hotel"></i>
+                <h3>Hotel</h3>
+                <p style="font-size: 0.9rem;">Dynamic room pricing based on occupancy, season and local events.</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-plane"></i>
+                <h3>Flight</h3>
+                <p style="font-size: 0.9rem;">Fare optimization based on booking time, route demand and competition.</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-car"></i>
+                <h3>Ride</h3>
+                <p style="font-size: 0.9rem;">Surge pricing based on driver availability, weather and peak hours.</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>E-commerce</h3>
+                <p style="font-size: 0.9rem;">Product pricing based on inventory, competitor prices and demand trends.</p>
+            </div>
+            <div class="glass-panel icon-card">
+                <i class="fas fa-laptop-code"></i>
+                <h3>SaaS</h3>
+                <p style="font-size: 0.9rem;">Subscription plan pricing based on customer segment, feature usage and market.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 8: STATS / SOCIAL PROOF -->
+    <section class="section-padding container animate-on-scroll">
+        <h2 class="section-title">Trusted Numbers</h2>
+        <p class="section-subtitle">Data-driven performance you can rely on.</p>
+        
+        <div class="grid-3" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); text-align: center;">
+            <div class="glass-panel" style="padding: 2rem;">
+                <div class="big-stat counter" data-target="95">0</div>
+                <div style="font-size: 1.2rem; color: var(--text-main); font-weight: 600;">%</div>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Average ML Accuracy across all 5 models</p>
+            </div>
+            <div class="glass-panel" style="padding: 2rem;">
+                <div class="big-stat counter" data-target="3754">0</div>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Real training records powering the AI</p>
+            </div>
+            <div class="glass-panel" style="padding: 2rem;">
+                <div class="big-stat counter" data-target="5">0</div>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Industries with dedicated ML models</p>
+            </div>
+            <div class="glass-panel" style="padding: 2rem;">
+                <div class="big-stat" style="font-size: 3rem; margin-top: 0.5rem;">24/7</div>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Always live, monitored by UptimeRobot</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 9: PRICING PLANS -->
+    <section id="pricing" class="section-padding container animate-on-scroll">
+        <h2 class="section-title">Simple, Transparent Pricing</h2>
+        <p class="section-subtitle">Start free. Upgrade when you are ready.</p>
+        
+        <div class="pricing-cards">
+            <div class="glass-panel pricing-card">
+                <div class="price-title">Free Plan</div>
+                <div class="price">₹0<span>/month</span></div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i> 50 calculations per month</li>
+                    <li><i class="fas fa-check"></i> All 5 categories</li>
+                    <li><i class="fas fa-check"></i> Basic analytics</li>
+                    <li><i class="fas fa-check"></i> History up to 100 records</li>
+                </ul>
+                <a href="{{ url_for('register') }}" class="btn-outline" style="text-align: center;">Get Started Free</a>
+            </div>
+            
+            <div class="glass-panel pricing-card popular">
+                <div class="popular-badge">Most Popular</div>
+                <div class="price-title" style="color: var(--primary);">Pro Plan</div>
+                <div class="price">₹999<span>/month</span></div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i> Unlimited calculations</li>
+                    <li><i class="fas fa-check"></i> All 5 categories</li>
+                    <li><i class="fas fa-check"></i> Full analytics and CSV export</li>
+                    <li><i class="fas fa-check"></i> A/B Testing Simulator</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                </ul>
+                <a href="{{ url_for('register') }}" class="btn-primary" style="text-align: center;">Start Pro Trial</a>
+            </div>
+            
+            <div class="glass-panel pricing-card">
+                <div class="price-title">Business Plan</div>
+                <div class="price">₹4,999<span>/month</span></div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i> Everything in Pro</li>
+                    <li><i class="fas fa-check"></i> API access for integration</li>
+                    <li><i class="fas fa-check"></i> Team accounts (5 users)</li>
+                    <li><i class="fas fa-check"></i> Custom ML model tuning</li>
+                    <li><i class="fas fa-check"></i> Dedicated support</li>
+                </ul>
+                <a href="mailto:support@nexuspricing.com" class="btn-outline" style="text-align: center;">Contact Us</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 10: FAQ SECTION -->
+    <section class="section-padding container animate-on-scroll">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-subtitle">Everything you need to know about NexusPricing.</p>
+        
+        <div class="faq-container">
+            <div class="faq-item">
+                <button class="faq-question">
+                    Is this real Machine Learning or just a formula?
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p style="padding-top: 1rem;">Real ML. We use Stochastic Gradient Descent Linear Regression trained on 3,754 actual market records — the same algorithm class used by Google and Amazon.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Do I need technical knowledge to use it?
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p style="padding-top: 1rem;">Zero. Just enter your product details and click Calculate. The AI does everything else automatically.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Which industries does it support?
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p style="padding-top: 1rem;">Hotel, Flight, Ride/Cab, E-commerce and SaaS. Each has its own dedicated ML model trained on 750 industry-specific records.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Is my data safe?
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p style="padding-top: 1rem;">Yes. Each user's data is completely isolated using multi-tenant architecture. Your data is never shared with other users.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Can I try it for free?
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p style="padding-top: 1rem;">Yes. The free plan gives you 50 calculations per month with full access to all 5 categories. No credit card required.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 11: FINAL CTA SECTION -->
+    <section class="cta-section animate-on-scroll">
+        <h2 class="hero-title" style="margin-bottom: 1rem;">Start Pricing Smarter Today</h2>
+        <p class="hero-subtitle" style="color: var(--text-main); margin-bottom: 2rem;">Join businesses already using AI to optimize their pricing. Free to start. No credit card.</p>
+        <a href="{{ url_for('register') }}" class="btn-primary" style="font-size: 1.2rem; padding: 1.2rem 2.5rem; box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);">Create Free Account</a>
+        <p style="color: var(--text-muted); margin-top: 1rem;">Takes 30 seconds to sign up</p>
+    </section>
+
+    <!-- SECTION 12: FOOTER -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <a href="/" class="nav-brand" style="margin-bottom: 1rem; display: block;">Nexus<span>Pricing</span></a>
+                <p style="color: var(--text-secondary); max-width: 300px;">AI-Powered Dynamic Pricing for Modern Business</p>
+            </div>
+            <div class="footer-links">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('simulator') }}">Simulator</a>
+                <a href="{{ url_for('analytics') }}">Analytics</a>
+                <a href="{{ url_for('login') }}">Login</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Built with Python, MongoDB and Machine Learning</p>
+            <p style="margin-top: 0.5rem;">&copy; 2025 NexusPricing. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('show');
+        }
+
+        // FAQ Accordion
+        document.querySelectorAll('.faq-question').forEach(button => {
+            button.addEventListener('click', () => {
+                const item = button.parentElement;
+                const isActive = item.classList.contains('active');
+                
+                // Close all
+                document.querySelectorAll('.faq-item').forEach(faq => {
+                    faq.classList.remove('active');
+                });
+                
+                // Open clicked if it wasn't active
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    
+                    // Counter animation trigger
+                    const counters = entry.target.querySelectorAll('.counter');
+                    if (counters.length > 0 && !entry.target.dataset.counted) {
+                        entry.target.dataset.counted = 'true';
+                        counters.forEach(counter => {
+                            const target = parseInt(counter.getAttribute('data-target'));
+                            const duration = 2000; // ms
+                            const step = target / (duration / 16); // 60fps
+                            let current = 0;
+                            
+                            const updateCounter = () => {
+                                current += step;
+                                if (current < target) {
+                                    counter.innerText = Math.ceil(current).toLocaleString();
+                                    requestAnimationFrame(updateCounter);
+                                } else {
+                                    counter.innerText = target.toLocaleString();
+                                }
+                            };
+                            updateCounter();
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

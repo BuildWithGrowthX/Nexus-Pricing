@@ -183,6 +183,12 @@ def complete_onboarding():
 # ================================================================
 
 @app.route('/')
+def index():
+    if 'username' in session:
+        return redirect(url_for('dashboard'))
+    return render_template('landing.html')
+
+@app.route('/dashboard')
 def dashboard():
     if 'username' not in session: return redirect(url_for('login'))
     
@@ -213,6 +219,27 @@ def history():
 def settings_page():
     if 'username' not in session: return redirect(url_for('login'))
     return render_template('settings.html', username=session['username'])
+
+@app.route('/sitemap.xml')
+def sitemap():
+    from flask import Response
+    xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://nexus-pricing.onrender.com/</loc></url>
+  <url><loc>https://nexus-pricing.onrender.com/dashboard</loc></url>
+  <url><loc>https://nexus-pricing.onrender.com/simulator</loc></url>
+  <url><loc>https://nexus-pricing.onrender.com/analytics</loc></url>
+  <url><loc>https://nexus-pricing.onrender.com/history</loc></url>
+</urlset>'''
+    return Response(xml, mimetype='application/xml')
+
+@app.route('/robots.txt')
+def robots():
+    from flask import Response
+    txt = '''User-agent: *
+Allow: /
+Sitemap: https://nexus-pricing.onrender.com/sitemap.xml'''
+    return Response(txt, mimetype='text/plain')
 
 # ================================================================
 # PRICING HISTORY ENDPOINTS
