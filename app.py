@@ -241,6 +241,11 @@ Allow: /
 Sitemap: https://nexus-pricing.onrender.com/sitemap.xml'''
     return Response(txt, mimetype='text/plain')
 
+@app.route('/google37bf091ef3f82cdd%20(1).html')
+@app.route('/google37bf091ef3f82cdd (1).html')
+def google_verification():
+    return "google-site-verification: google37bf091ef3f82cdd%20(1).html"
+
 # ================================================================
 # PRICING HISTORY ENDPOINTS
 # ================================================================
