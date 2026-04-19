@@ -222,24 +222,47 @@ def settings_page():
 
 @app.route('/sitemap.xml')
 def sitemap():
-    from flask import Response
     xml = '''<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://nexus-pricing.onrender.com/</loc></url>
-  <url><loc>https://nexus-pricing.onrender.com/dashboard</loc></url>
-  <url><loc>https://nexus-pricing.onrender.com/simulator</loc></url>
-  <url><loc>https://nexus-pricing.onrender.com/analytics</loc></url>
-  <url><loc>https://nexus-pricing.onrender.com/history</loc></url>
+  <url>
+    <loc>https://nexus-pricing.onrender.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://nexus-pricing.onrender.com/dashboard</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://nexus-pricing.onrender.com/simulator</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nexus-pricing.onrender.com/analytics</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nexus-pricing.onrender.com/history</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nexus-pricing.onrender.com/settings</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>'''
-    return Response(xml, mimetype='application/xml')
+    return xml, 200, {'Content-Type': 'application/xml'}
 
 @app.route('/robots.txt')
 def robots():
-    from flask import Response
-    txt = '''User-agent: *
+    content = '''User-agent: *
 Allow: /
 Sitemap: https://nexus-pricing.onrender.com/sitemap.xml'''
-    return Response(txt, mimetype='text/plain')
+    return content, 200, {'Content-Type': 'text/plain'}
 
 @app.route('/google37bf091ef3f82cdd.html')
 def google_verification():
