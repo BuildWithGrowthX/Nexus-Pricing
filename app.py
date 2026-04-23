@@ -228,31 +228,17 @@ def sitemap():
     <loc>https://nexus-pricing.onrender.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <lastmod>2026-04-23</lastmod>
   </url>
   <url>
-    <loc>https://nexus-pricing.onrender.com/dashboard</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://nexus-pricing.onrender.com/simulator</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nexus-pricing.onrender.com/analytics</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nexus-pricing.onrender.com/history</loc>
-    <changefreq>daily</changefreq>
+    <loc>https://nexus-pricing.onrender.com/login</loc>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://nexus-pricing.onrender.com/settings</loc>
+    <loc>https://nexus-pricing.onrender.com/register</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
 </urlset>'''
     return xml, 200, {'Content-Type': 'application/xml'}
